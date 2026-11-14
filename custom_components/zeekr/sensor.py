@@ -54,6 +54,7 @@ class ZeekrSensorSpec:
     path: str
     numeric: bool = True
     invalid: Tuple[float, ...] = ()
+    value_map: Optional[Dict[str, str]] = None
 
 
 # Original keys below are preserved verbatim so existing entity unique_ids
@@ -172,6 +173,7 @@ SENSOR_FIELDS: List[ZeekrSensorSpec] = [
         ),
         "additionalVehicleStatus.drivingSafetyStatus.centralLockingStatus",
         numeric=False,
+        value_map={"0": "Відімкнено", "1": "Замкнено"},
     ),
     ZeekrSensorSpec(
         SensorEntityDescription(
@@ -179,6 +181,7 @@ SENSOR_FIELDS: List[ZeekrSensorSpec] = [
         ),
         "additionalVehicleStatus.drivingSafetyStatus.electricParkBrakeStatus",
         numeric=False,
+        value_map={"0": "Відпущено", "1": "Задіяно"},
     ),
     # ---- New sensors added by this integration (new keys, new unique_ids) ----
     ZeekrSensorSpec(
@@ -329,6 +332,7 @@ class ZeekrSensor(ZeekrVehicleEntity, SensorEntity):
         self._path = spec.path
         self._numeric = spec.numeric
         self._invalid = spec.invalid
+        self._value_map = spec.value_map
         self._attr_unique_id = f"{vin}_{spec.description.key}"
 
     @property
@@ -344,7 +348,10 @@ class ZeekrSensor(ZeekrVehicleEntity, SensorEntity):
             return "On" if value else "Off"
         if value is None or value == "":
             return None
-        return str(value)
+        text = str(value)
+        if self._value_map:
+            return self._value_map.get(text, text)
+        return text
 
 
 class ZeekrLastUpdateSensor(ZeekrVehicleEntity, SensorEntity):

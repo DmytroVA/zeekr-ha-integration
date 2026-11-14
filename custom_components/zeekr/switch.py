@@ -17,6 +17,7 @@ class ZeekrSentrySwitch(ZeekrVehicleEntity, SwitchEntity):
     """Control the RSM sentry service and reflect the last reported usage mode."""
 
     _attr_name = "Sentry Mode"
+    _attr_assumed_state = True
 
     def __init__(self, runtime: ZeekrRuntimeData, vin: str) -> None:
         """Bind the RSM control to one vehicle and the shared account API client."""
@@ -52,10 +53,10 @@ class ZeekrSentrySwitch(ZeekrVehicleEntity, SwitchEntity):
         try:
             await self._api.async_set_sentry(self.vin, enabled)
             await self.coordinator.async_refresh_vehicle(self.vin)
-            if self.is_on != enabled:
-                raise HomeAssistantError(
-                    "Vehicle status did not confirm the requested sentry mode"
-                )
+            # The command round-trips cloud -> car -> cloud, so the freshly polled
+            # status often has not caught up yet. Treat an accepted command as
+            # success; the next poll reflects the confirmed state. Do not raise on
+            # a not-yet-confirmed mismatch.
         except ZeekrAuthError as err:
             start_reauth(self.hass)
             raise HomeAssistantError("Zeekr credentials expired") from err
