@@ -10,6 +10,7 @@ from homeassistant.exceptions import HomeAssistantError
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 
 from .api import ZeekrApiError, ZeekrAuthError
+from .commands import async_run_command
 from .const import RAPID_COOL_TEMP, RAPID_WARM_TEMP
 from .coordinator import ZeekrRuntimeData, start_reauth
 from .entity import ZeekrVehicleEntity
@@ -155,25 +156,18 @@ class ZeekrCommandButton(ZeekrVehicleEntity, ButtonEntity):
         self._attr_unique_id = f"{vin}_cmd_{spec.key}"
 
     async def async_press(self) -> None:
-        """Build and send the command, then refresh and surface any API failure."""
+        """Send the command and fail with the car's reason if it is not executed."""
         setting = self._runtime.climate_setting(self.vin)
         command = self._spec.build(setting)
-        try:
-            await self._runtime.api.async_remote_control(
-                self.vin,
-                service_id=command["service_id"],
-                command=command.get("command"),
-                parameters=command.get("parameters"),
-                duration=command.get("duration"),
-            )
-            await self.coordinator.async_refresh_vehicle(self.vin)
-        except ZeekrAuthError as err:
-            start_reauth(self.hass)
-            raise HomeAssistantError("Zeekr credentials expired") from err
-        except ZeekrApiError as err:
-            raise HomeAssistantError(
-                f"Zeekr rejected command {self._spec.key}: {err}"
-            ) from err
+        await async_run_command(
+            self.hass,
+            self._runtime,
+            self.vin,
+            service_id=command["service_id"],
+            command=command.get("command"),
+            parameters=command.get("parameters"),
+            duration=command.get("duration"),
+        )
 
 
 async def async_setup_entry(

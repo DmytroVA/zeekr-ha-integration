@@ -72,7 +72,7 @@ remote_control:
           mode: box
     wait_result:
       name: Wait for result
-      description: Poll the command's execution result for up to 25 seconds and return every answer.
+      description: Wait up to 45 seconds for the car to report whether it executed the command.
       default: true
       selector:
         boolean: {}

@@ -72,13 +72,21 @@ into *changing* (with change count and sample values), *constant* and
 | `sensor` | 27 typed (battery, range, interior/exterior temp, tyre pressures/temps, odometer, distances/days to service, 12 V voltage, charge current/voltage, avg consumption, PM2.5, speed, time-to-full, trip meters, …), `last_cloud_update`, **+ ~169 raw diagnostic sensors (disabled by default) covering every remaining field in the app's status model** (BasicVo, ElectricVehicleStatusVo, ClimateStatusVo, DrivingSafetyStatusVo, AdditionalMaintenanceStatusVo, RunningStatusVo, PollutionStatusVo, DrivingBehaviourStatusVo, BigdataVehicleStatusVo, PositionVo, mainBatteryStatus). Nested/JSON fields (`storageBoxStatus`, `fragItems`, …) are shown as compact JSON. |
 | `binary_sensor` | charging, plugged-in, 4 doors, trunk, hood, HV-battery optimization, **gps_spoofed** |
 | `device_tracker` | location (trusted-position holding) |
-| `switch` | **sentry mode** (confirmed; shows the commanded state immediately and confirms it in the background), air conditioning *(experimental, disabled by default)* |
+| `switch` | **sentry mode**, **air conditioning** (both confirmed on a Zeekr 001) |
 | `button` | **refresh** (confirmed), + 10 command buttons *(experimental, disabled by default)*: AC start/stop, rapid cool/warm, defrost start/stop, cabin ventilation start/stop, flash & horn, trunk open |
 | `number` | AC target temperature, AC duration (local helpers used by the AC controls) |
 
 Enable the experimental entities from the device page if you want to try them.
 
 ## Commands
+
+Every command (switches, buttons and the `zeekr.remote_control` service) follows
+the official app's flow: the command is sent, then its execution result is polled
+every 2 seconds by the `sessionId` the cloud returned, for up to 45 seconds. The
+car normally answers within 2–7 seconds. Switches show the new state at once; if
+the car refuses or does not answer, the old state comes back and the action fails
+with the car's own reason. The status document itself is only refreshed by the
+car about once a minute, so it is used as the final reconciliation.
 
 The command envelope (`{serviceId, command, setting:{serviceParameters, operationScheduling}}`)
 is **confirmed** — the sentry command uses it live. Individual `serviceId` acceptance
@@ -89,7 +97,7 @@ experimental until confirmed on your car.
 |---|---|---|---|
 | Refresh status | — | **confirmed** | immediate poll |
 | Sentry mode | `RSM` | **confirmed** | works on the live account |
-| Air conditioning | `ZAF` | experimental | params `AC`, `AC.temp`, `AC.duration` |
+| Air conditioning | `ZAF` | **confirmed** (Zeekr 001) | params `AC`, `AC.temp`, `AC.duration` |
 | Rapid cool / warm | `ZAF` | experimental | AC at 15.5 °C / 28.5 °C |
 | Defrost | `ZAF` | experimental | `DF`, `DF.level`, `DF.duration` |
 | Cabin ventilation | `RCC` | experimental | `rcc.conditioner`, `rcc.ventilation`, duration×6 |

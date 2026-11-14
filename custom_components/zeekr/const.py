@@ -7,17 +7,14 @@ NAME = "Zeekr"
 PLATFORMS = ["sensor", "binary_sensor", "device_tracker", "button", "switch", "number"]
 SCAN_INTERVAL = timedelta(seconds=60)
 
-# After a remote command, re-poll the vehicle status up to this many times,
-# waiting this many seconds between tries, to confirm execution quickly instead
-# of waiting for the next regular poll. The command path is cloud -> car -> cloud.
-COMMAND_CONFIRM_ATTEMPTS = 6
-COMMAND_CONFIRM_DELAY = 5
-# How long a switch keeps showing the commanded state while the car has not yet
-# reported it. After this window the next poll's reported state wins again.
-COMMAND_OPTIMISTIC_HOLD = 120
-# The official app waits up to 23 s for a command's execution result.
-COMMAND_RESULT_TIMEOUT = 25
-COMMAND_RESULT_INTERVAL = 1.5
+# Remote commands: how often to ask the cloud for a command's execution result
+# and how long to wait for it (the official app gives a command 45 seconds).
+COMMAND_RESULT_INTERVAL = 2
+COMMAND_RESULT_TIMEOUT = 45
+# The car refreshes its status document about once a minute, so after a confirmed
+# command a switch keeps showing the commanded state for up to this many seconds
+# until the status document catches up.
+COMMAND_OPTIMISTIC_HOLD = 180
 
 CONF_MOBILE = "mobile"
 CONF_DEVICE_ID = "device_id"
