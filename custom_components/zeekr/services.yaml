@@ -1,0 +1,72 @@
+get_monthly_statistics:
+  name: Get monthly statistics
+  description: Return the monthly journey statistics for one Zeekr vehicle.
+  fields:
+    vin:
+      name: Vehicle VIN
+      required: true
+      selector:
+        text: {}
+    year_month:
+      name: Month
+      required: true
+      description: Month in YYYY-MM format.
+      selector:
+        text: {}
+    account_id:
+      name: Account ID
+      required: true
+      selector:
+        text: {}
+
+get_app_messages:
+  name: Get app messages
+  description: Return app upgrade messages for one Zeekr vehicle.
+  fields:
+    vin:
+      name: Vehicle VIN
+      required: true
+      selector:
+        text: {}
+
+remote_control:
+  name: Remote control (advanced)
+  description: >-
+    Send a raw remote-control command to one vehicle. The envelope is confirmed
+    from the app; serviceId acceptance varies per vehicle generation. Examples:
+    serviceId RSM (sentry), ZAF (climate: AC/DF/SH.xx/RC/RW params), RCC (cabin
+    ventilation), RDU/RDL (door unlock/lock, target param), RTU/RTL (trunk),
+    RHL (flash & horn).
+  fields:
+    vin:
+      name: Vehicle VIN
+      required: true
+      selector:
+        text: {}
+    service_id:
+      name: Service ID
+      required: true
+      example: RSM
+      selector:
+        text: {}
+    command:
+      name: Command
+      required: false
+      example: start
+      selector:
+        text: {}
+    parameters:
+      name: Service parameters
+      description: List of {key, value} objects placed in setting.serviceParameters.
+      required: false
+      selector:
+        object: {}
+    duration:
+      name: Duration
+      description: Optional run time placed in setting.operationScheduling.duration.
+      required: false
+      selector:
+        number:
+          min: 0
+          max: 600
+          mode: box
