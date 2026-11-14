@@ -5,7 +5,7 @@ from datetime import timedelta
 DOMAIN = "zeekr"
 NAME = "Zeekr"
 PLATFORMS = ["sensor", "binary_sensor", "device_tracker", "button", "switch", "number"]
-SCAN_INTERVAL = timedelta(seconds=300)
+SCAN_INTERVAL = timedelta(seconds=60)
 
 # After a remote command, re-poll the vehicle status up to this many times,
 # waiting this many seconds between tries, to confirm execution quickly instead

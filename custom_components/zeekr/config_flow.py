@@ -16,6 +16,7 @@ class ZeekrConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
     """Manage SMS login, account uniqueness, and credential recovery."""
 
     VERSION = 1
+    MINOR_VERSION = 2
 
     def __init__(self) -> None:
         """Initialize transient login state that is never written to disk."""

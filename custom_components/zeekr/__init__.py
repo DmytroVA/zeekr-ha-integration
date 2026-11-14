@@ -10,6 +10,7 @@ from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant, SupportsResponse, callback
 from homeassistant.exceptions import HomeAssistantError
 from homeassistant.helpers import config_validation as cv
+from homeassistant.helpers import entity_registry as er
 from homeassistant.helpers.aiohttp_client import async_get_clientsession
 
 from .api import ZeekrApi, ZeekrApiError, ZeekrAuthError
@@ -38,6 +39,32 @@ async def async_setup(hass: HomeAssistant, config: Dict[str, Any]) -> bool:
     websocket_api.async_register_command(hass, websocket_list_vehicles)
     websocket_api.async_register_command(hass, websocket_start_sentinel)
     _async_register_services(hass)
+    return True
+
+
+async def async_migrate_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
+    """Bring entries created by older versions up to the current defaults.
+
+    1.1 -> 1.2: raw passthrough sensors became disabled by default. Installs
+    made before that still have all of them enabled, so disable them once here.
+    They are disabled "by integration", so any of them can be re-enabled from the
+    device page and will then stay enabled.
+    """
+    if entry.version == 1 and entry.minor_version < 2:
+        registry = er.async_get(hass)
+        for entity in er.async_entries_for_config_entry(registry, entry.entry_id):
+            # Raw sensor unique_ids are "<vin>_raw_<key>"; a VIN has no underscore.
+            _vin, _, key = entity.unique_id.partition("_")
+            if (
+                entity.domain == "sensor"
+                and key.startswith("raw_")
+                and entity.disabled_by is None
+            ):
+                registry.async_update_entity(
+                    entity.entity_id,
+                    disabled_by=er.RegistryEntryDisabler.INTEGRATION,
+                )
+        hass.config_entries.async_update_entry(entry, minor_version=2)
     return True
 
 

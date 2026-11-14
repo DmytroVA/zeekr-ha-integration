@@ -37,7 +37,7 @@ integration and your phone app don't evict each other.
 ## How data freshness works (important)
 
 The status document carries the car's own **`updateTime`** (last successful upload
-to the cloud). The integration polls every 5 minutes, but it only ever receives the
+to the cloud). The integration polls every 60 seconds, but it only ever receives the
 document the car last uploaded — so values can be stale even though HA is polling
 fine. The **`sensor.*_last_cloud_update`** entity shows that true timestamp; trust
 it over Home Assistant's own "last changed".
