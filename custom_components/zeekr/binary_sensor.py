@@ -145,7 +145,7 @@ class ZeekrGpsSpoofSensor(ZeekrVehicleEntity, BinarySensorEntity):
     @property
     def is_on(self) -> bool:
         """Return True when the reported position is not trustworthy."""
-        return str(value_at(self.vehicle_data, _POS_TRUST)) != "1"
+        return boolean_value(value_at(self.vehicle_data, _POS_TRUST)) is not True
 
     @property
     def available(self) -> bool:

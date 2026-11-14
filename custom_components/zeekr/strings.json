@@ -29,5 +29,21 @@
       "already_configured": "This Zeekr account is already configured.",
       "reauth_successful": "Zeekr account reauthenticated."
     }
+  },
+  "entity": {
+    "sensor": {
+      "central_locking_status": {
+        "state": {
+          "unlocked": "Unlocked",
+          "locked": "Locked"
+        }
+      },
+      "electric_park_brake_status": {
+        "state": {
+          "released": "Released",
+          "engaged": "Engaged"
+        }
+      }
+    }
   }
 }

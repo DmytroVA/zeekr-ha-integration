@@ -29,5 +29,21 @@
       "already_configured": "Цей акаунт Zeekr уже налаштовано.",
       "reauth_successful": "Акаунт Zeekr повторно авторизовано."
     }
+  },
+  "entity": {
+    "sensor": {
+      "central_locking_status": {
+        "state": {
+          "unlocked": "Відімкнено",
+          "locked": "Замкнено"
+        }
+      },
+      "electric_park_brake_status": {
+        "state": {
+          "released": "Відпущено",
+          "engaged": "Задіяно"
+        }
+      }
+    }
   }
 }

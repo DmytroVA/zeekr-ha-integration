@@ -8,7 +8,7 @@ from homeassistant.components import websocket_api
 from homeassistant.components.http import StaticPathConfig
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant, SupportsResponse, callback
-from homeassistant.exceptions import ConfigEntryAuthFailed, HomeAssistantError
+from homeassistant.exceptions import HomeAssistantError
 from homeassistant.helpers import config_validation as cv
 from homeassistant.helpers.aiohttp_client import async_get_clientsession
 
@@ -20,6 +20,7 @@ from .const import (
     WS_START_SENTINEL,
 )
 from .coordinator import (
+    FieldObserver,
     VehicleStatusCoordinator,
     ZeekrRuntimeData,
     get_runtime,
@@ -49,10 +50,8 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
 
     api = ZeekrApi(async_get_clientsession(hass), entry.data, persist_tokens)
     coordinator = VehicleStatusCoordinator(hass, api)
-    try:
-        await coordinator.async_config_entry_first_refresh()
-    except ConfigEntryAuthFailed:
-        raise
+    await coordinator.observer.async_load()
+    await coordinator.async_config_entry_first_refresh()
     runtime = ZeekrRuntimeData(api=api, coordinator=coordinator)
     entry.runtime_data = runtime
     hass.data[DOMAIN][entry.entry_id] = runtime
@@ -66,6 +65,11 @@ async def async_unload_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     if unloaded:
         hass.data[DOMAIN].pop(entry.entry_id, None)
     return unloaded
+
+
+async def async_remove_entry(hass: HomeAssistant, entry: ConfigEntry) -> None:
+    """Delete the stored field observations together with the account entry."""
+    await FieldObserver(hass).async_remove()
 
 
 @websocket_api.websocket_command({vol.Required("type"): WS_LIST_VEHICLES})
@@ -91,6 +95,7 @@ def websocket_list_vehicles(
         vol.Required("vin"): cv.string,
     }
 )
+@websocket_api.require_admin
 @websocket_api.async_response
 async def websocket_start_sentinel(
     hass: HomeAssistant, connection: websocket_api.ActiveConnection, msg: Dict[str, Any]

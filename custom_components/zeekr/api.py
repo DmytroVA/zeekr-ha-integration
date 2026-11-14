@@ -64,6 +64,10 @@ class ZeekrApi:
         self.legacy_refresh_token = str(data.get("legacy_refresh_token", ""))
         self.vehicles = list(data.get(CONF_VEHICLES, []))
         self._token_updated = token_updated
+        # Serializes token rotation: a refresh token is single-use, so two
+        # concurrent refreshes would get the second one rejected and force a
+        # needless SMS reauthentication.
+        self._refresh_lock = asyncio.Lock()
 
     def export_data(self) -> Dict[str, Any]:
         """Return the current account state for secure config-entry persistence."""
@@ -328,14 +332,27 @@ class ZeekrApi:
 
     async def _new_call(self, *args: Any, **kwargs: Any) -> Dict[str, Any]:
         """Retry one new-API operation after a single access-token refresh."""
+        used_token = self.access_token
         try:
             return await self._new_request(*args, **kwargs)
         except ZeekrAuthError:
-            await self._async_refresh_new_token()
+            await self._async_refresh_new_token(used_token)
             return await self._new_request(*args, **kwargs)
 
-    async def _async_refresh_new_token(self) -> None:
-        """Rotate the new account tokens using the stored refresh token."""
+    async def _async_refresh_new_token(self, rejected_token: Optional[str] = None) -> None:
+        """Rotate the new account tokens using the stored refresh token.
+
+        ``rejected_token`` is the access token the failed request was sent with.
+        If another caller already rotated it while this one waited for the lock,
+        the rotation is skipped and the caller simply retries with the new token.
+        """
+        async with self._refresh_lock:
+            if rejected_token is not None and self.access_token != rejected_token:
+                return
+            await self._async_rotate_new_token()
+
+    async def _async_rotate_new_token(self) -> None:
+        """Perform one token rotation; callers must hold the refresh lock."""
         if not self.refresh_token or not self.access_token:
             raise ZeekrAuthError("New account session expired and cannot be refreshed")
         response = await self._new_request(
@@ -498,7 +515,11 @@ class ZeekrApi:
         url = request_url(base, path, params)
         try:
             async with self._session.request(
-                method, url, json=payload, headers=dict(headers), timeout=25
+                method,
+                url,
+                json=payload,
+                headers=dict(headers),
+                timeout=aiohttp.ClientTimeout(total=25),
             ) as response:
                 if response.status in (401, 403):
                     raise ZeekrAuthError(

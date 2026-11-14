@@ -37,7 +37,7 @@ integration and your phone app don't evict each other.
 ## How data freshness works (important)
 
 The status document carries the car's own **`updateTime`** (last successful upload
-to the cloud). The integration polls every 60 s, but it only ever receives the
+to the cloud). The integration polls every 5 minutes, but it only ever receives the
 document the car last uploaded — so values can be stale even though HA is polling
 fine. The **`sensor.*_last_cloud_update`** entity shows that true timestamp; trust
 it over Home Assistant's own "last changed".
@@ -53,15 +53,26 @@ cloud reject further uploads, freezing the data. This integration:
 
 ## Entities (per vehicle)
 
-~223 entities per car. Obscure/opaque fields are grouped under the **Diagnostic**
-category so the main view stays clean while nothing is hidden.
+~50 entities per car are enabled out of the box. The ~169 raw passthrough sensors
+(every remaining field of the app's status model) are created **disabled** under
+the **Diagnostic** category: most of them are empty or never change on a given
+car. Enable the ones you need from the device page.
+
+To see which fields your car really fills, use **Download diagnostics** on the
+integration: `field_observations` lists every field the cloud returned, grouped
+into *changing* (with change count and sample values), *constant* and
+*always_empty*. The summary is collected continuously and survives restarts.
+
+`central_locking_status` reports `locked` / `unlocked` and
+`electric_park_brake_status` reports `engaged` / `released`. These are stable keys
+(use them in automations); the UI shows them translated.
 
 | Platform | Entities |
 |---|---|
-| `sensor` | 27 typed (battery, range, interior/exterior temp, tyre pressures/temps, odometer, distances/days to service, 12 V voltage, charge current/voltage, avg consumption, PM2.5, speed, time-to-full, trip meters, …), `last_cloud_update`, **+ ~169 raw diagnostic sensors covering every remaining field in the app's status model** (BasicVo, ElectricVehicleStatusVo, ClimateStatusVo, DrivingSafetyStatusVo, AdditionalMaintenanceStatusVo, RunningStatusVo, PollutionStatusVo, DrivingBehaviourStatusVo, BigdataVehicleStatusVo, PositionVo, mainBatteryStatus). Nested/JSON fields (`storageBoxStatus`, `fragItems`, …) are shown as compact JSON. |
+| `sensor` | 27 typed (battery, range, interior/exterior temp, tyre pressures/temps, odometer, distances/days to service, 12 V voltage, charge current/voltage, avg consumption, PM2.5, speed, time-to-full, trip meters, …), `last_cloud_update`, **+ ~169 raw diagnostic sensors (disabled by default) covering every remaining field in the app's status model** (BasicVo, ElectricVehicleStatusVo, ClimateStatusVo, DrivingSafetyStatusVo, AdditionalMaintenanceStatusVo, RunningStatusVo, PollutionStatusVo, DrivingBehaviourStatusVo, BigdataVehicleStatusVo, PositionVo, mainBatteryStatus). Nested/JSON fields (`storageBoxStatus`, `fragItems`, …) are shown as compact JSON. |
 | `binary_sensor` | charging, plugged-in, 4 doors, trunk, hood, HV-battery optimization, **gps_spoofed** |
 | `device_tracker` | location (trusted-position holding) |
-| `switch` | **sentry mode** (confirmed), air conditioning *(experimental, disabled by default)* |
+| `switch` | **sentry mode** (confirmed; shows the commanded state immediately and confirms it in the background), air conditioning *(experimental, disabled by default)* |
 | `button` | **refresh** (confirmed), + 10 command buttons *(experimental, disabled by default)*: AC start/stop, rapid cool/warm, defrost start/stop, cabin ventilation start/stop, flash & horn, trunk open |
 | `number` | AC target temperature, AC duration (local helpers used by the AC controls) |
 
@@ -106,6 +117,12 @@ data:
 ```
 
 Other services: `zeekr.get_monthly_statistics`, `zeekr.get_app_messages`.
+
+All services take the `vin`, because one account can hold several vehicles; each
+vehicle is its own device and a poll failure of one car does not affect the others.
+
+The sentinel live-video card (`/api/zeekr/zeekr-sentinel-card.js`) can only open a
+stream for Home Assistant **administrator** users.
 
 ## Credits
 

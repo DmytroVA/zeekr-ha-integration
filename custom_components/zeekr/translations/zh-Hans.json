@@ -29,5 +29,21 @@
       "already_configured": "此 Zeekr 账号已配置。",
       "reauth_successful": "Zeekr 账号已重新验证。"
     }
+  },
+  "entity": {
+    "sensor": {
+      "central_locking_status": {
+        "state": {
+          "unlocked": "已解锁",
+          "locked": "已上锁"
+        }
+      },
+      "electric_park_brake_status": {
+        "state": {
+          "released": "已释放",
+          "engaged": "已启用"
+        }
+      }
+    }
   }
 }

@@ -38,19 +38,36 @@ def _redact_status(status: Dict[str, Any]) -> Dict[str, Any]:
     return data
 
 
+def _redact_observations(summary: Dict[str, Any]) -> Dict[str, Any]:
+    """Hide coordinate values in the field summary but keep their change counts."""
+    data = copy.deepcopy(summary)
+    for path, record in data["changing"].items():
+        if path.endswith((".latitude", ".longitude")):
+            record["samples"] = "**REDACTED**"
+    for path in data["constant"]:
+        if path.endswith((".latitude", ".longitude")):
+            data["constant"][path] = "**REDACTED**"
+    return data
+
+
 async def async_get_config_entry_diagnostics(
     hass: HomeAssistant, entry: ConfigEntry
 ) -> Dict[str, Any]:
     """Return redacted account and per-vehicle status for support purposes."""
     runtime: ZeekrRuntimeData = entry.runtime_data
-    vehicles = {
-        f"vehicle_{index}": _redact_status(status)
-        for index, (_vin, status) in enumerate(
-            (runtime.coordinator.data or {}).items()
+    statuses = runtime.coordinator.data or {}
+    vehicles = {}
+    field_observations = {}
+    for index, vin in enumerate(runtime.api.vehicles):
+        if vin in statuses:
+            vehicles[f"vehicle_{index}"] = _redact_status(statuses[vin])
+        field_observations[f"vehicle_{index}"] = _redact_observations(
+            runtime.coordinator.observer.summary(vin)
         )
-    }
     return {
         "entry_data": async_redact_data(dict(entry.data), TO_REDACT),
         "vehicle_count": len(runtime.api.vehicles),
         "vehicles": vehicles,
+        # Which status fields this car really fills and how often they change.
+        "field_observations": field_observations,
     }

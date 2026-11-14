@@ -2,7 +2,7 @@
 
 from dataclasses import dataclass
 from datetime import datetime, timezone
-from typing import Any, List, Optional, Tuple
+from typing import Any, Dict, List, Optional, Tuple
 
 from homeassistant.components.sensor import (
     SensorDeviceClass,
@@ -15,7 +15,6 @@ from homeassistant.const import (
     EntityCategory,
     UnitOfElectricCurrent,
     UnitOfElectricPotential,
-    UnitOfEnergy,
     UnitOfLength,
     UnitOfPressure,
     UnitOfSpeed,
@@ -100,6 +99,7 @@ SENSOR_FIELDS: List[ZeekrSensorSpec] = [
             key="tire_pressure_front_left",
             name="Tire Pressure Front Left",
             device_class=SensorDeviceClass.PRESSURE,
+            state_class=SensorStateClass.MEASUREMENT,
             native_unit_of_measurement=UnitOfPressure.CBAR,
         ),
         "additionalVehicleStatus.maintenanceStatus.tyreStatusDriver",
@@ -109,6 +109,7 @@ SENSOR_FIELDS: List[ZeekrSensorSpec] = [
             key="tire_pressure_front_right",
             name="Tire Pressure Front Right",
             device_class=SensorDeviceClass.PRESSURE,
+            state_class=SensorStateClass.MEASUREMENT,
             native_unit_of_measurement=UnitOfPressure.CBAR,
         ),
         "additionalVehicleStatus.maintenanceStatus.tyreStatusPassenger",
@@ -118,6 +119,7 @@ SENSOR_FIELDS: List[ZeekrSensorSpec] = [
             key="tire_pressure_rear_left",
             name="Tire Pressure Rear Left",
             device_class=SensorDeviceClass.PRESSURE,
+            state_class=SensorStateClass.MEASUREMENT,
             native_unit_of_measurement=UnitOfPressure.CBAR,
         ),
         "additionalVehicleStatus.maintenanceStatus.tyreStatusDriverRear",
@@ -127,6 +129,7 @@ SENSOR_FIELDS: List[ZeekrSensorSpec] = [
             key="tire_pressure_rear_right",
             name="Tire Pressure Rear Right",
             device_class=SensorDeviceClass.PRESSURE,
+            state_class=SensorStateClass.MEASUREMENT,
             native_unit_of_measurement=UnitOfPressure.CBAR,
         ),
         "additionalVehicleStatus.maintenanceStatus.tyreStatusPassengerRear",
@@ -146,6 +149,8 @@ SENSOR_FIELDS: List[ZeekrSensorSpec] = [
             key="odometer",
             name="Odometer",
             native_unit_of_measurement=UnitOfLength.KILOMETERS,
+            device_class=SensorDeviceClass.DISTANCE,
+            state_class=SensorStateClass.TOTAL_INCREASING,
         ),
         "additionalVehicleStatus.maintenanceStatus.odometer",
     ),
@@ -155,6 +160,7 @@ SENSOR_FIELDS: List[ZeekrSensorSpec] = [
             name="Main Battery Voltage",
             native_unit_of_measurement=UnitOfElectricPotential.VOLT,
             device_class=SensorDeviceClass.VOLTAGE,
+            state_class=SensorStateClass.MEASUREMENT,
         ),
         "additionalVehicleStatus.maintenanceStatus.mainBatteryStatus.voltage",
     ),
@@ -162,26 +168,34 @@ SENSOR_FIELDS: List[ZeekrSensorSpec] = [
         SensorEntityDescription(
             key="average_power_consumption",
             name="Average Power Consumption",
-            native_unit_of_measurement=UnitOfEnergy.KILO_WATT_HOUR,
+            native_unit_of_measurement="kWh/100 km",
             state_class=SensorStateClass.MEASUREMENT,
         ),
         "additionalVehicleStatus.electricVehicleStatus.averPowerConsumption",
     ),
     ZeekrSensorSpec(
         SensorEntityDescription(
-            key="central_locking_status", name="Central Locking Status"
+            key="central_locking_status",
+            name="Central Locking Status",
+            translation_key="central_locking_status",
+            device_class=SensorDeviceClass.ENUM,
+            options=["unlocked", "locked"],
         ),
         "additionalVehicleStatus.drivingSafetyStatus.centralLockingStatus",
         numeric=False,
-        value_map={"0": "Відімкнено", "1": "Замкнено"},
+        value_map={"0": "unlocked", "1": "locked"},
     ),
     ZeekrSensorSpec(
         SensorEntityDescription(
-            key="electric_park_brake_status", name="Electric Park Brake Status"
+            key="electric_park_brake_status",
+            name="Electric Park Brake Status",
+            translation_key="electric_park_brake_status",
+            device_class=SensorDeviceClass.ENUM,
+            options=["released", "engaged"],
         ),
         "additionalVehicleStatus.drivingSafetyStatus.electricParkBrakeStatus",
         numeric=False,
-        value_map={"0": "Відпущено", "1": "Задіяно"},
+        value_map={"0": "released", "1": "engaged"},
     ),
     # ---- New sensors added by this integration (new keys, new unique_ids) ----
     ZeekrSensorSpec(
@@ -243,6 +257,7 @@ SENSOR_FIELDS: List[ZeekrSensorSpec] = [
             name="Tire Temperature Front Left",
             native_unit_of_measurement=UnitOfTemperature.CELSIUS,
             device_class=SensorDeviceClass.TEMPERATURE,
+            state_class=SensorStateClass.MEASUREMENT,
             entity_category=EntityCategory.DIAGNOSTIC,
         ),
         "additionalVehicleStatus.maintenanceStatus.tyreTempDriver",
@@ -253,6 +268,7 @@ SENSOR_FIELDS: List[ZeekrSensorSpec] = [
             name="Tire Temperature Front Right",
             native_unit_of_measurement=UnitOfTemperature.CELSIUS,
             device_class=SensorDeviceClass.TEMPERATURE,
+            state_class=SensorStateClass.MEASUREMENT,
             entity_category=EntityCategory.DIAGNOSTIC,
         ),
         "additionalVehicleStatus.maintenanceStatus.tyreTempPassenger",
@@ -263,6 +279,7 @@ SENSOR_FIELDS: List[ZeekrSensorSpec] = [
             name="Tire Temperature Rear Left",
             native_unit_of_measurement=UnitOfTemperature.CELSIUS,
             device_class=SensorDeviceClass.TEMPERATURE,
+            state_class=SensorStateClass.MEASUREMENT,
             entity_category=EntityCategory.DIAGNOSTIC,
         ),
         "additionalVehicleStatus.maintenanceStatus.tyreTempDriverRear",
@@ -273,6 +290,7 @@ SENSOR_FIELDS: List[ZeekrSensorSpec] = [
             name="Tire Temperature Rear Right",
             native_unit_of_measurement=UnitOfTemperature.CELSIUS,
             device_class=SensorDeviceClass.TEMPERATURE,
+            state_class=SensorStateClass.MEASUREMENT,
             entity_category=EntityCategory.DIAGNOSTIC,
         ),
         "additionalVehicleStatus.maintenanceStatus.tyreTempPassengerRear",
@@ -350,7 +368,9 @@ class ZeekrSensor(ZeekrVehicleEntity, SensorEntity):
             return None
         text = str(value)
         if self._value_map:
-            return self._value_map.get(text, text)
+            # Enum sensors: states are stable language-neutral keys translated by
+            # the frontend; a code the map does not know is reported as unknown.
+            return self._value_map.get(text)
         return text
 
 
@@ -388,9 +408,14 @@ class ZeekrRawSensor(ZeekrVehicleEntity, SensorEntity):
     Exhaustive coverage: every field the Zeekr app's status model defines is
     surfaced here (as a raw string, under the Diagnostic category) so no datum the
     cloud returns is hidden, even codes and nested JSON whose meaning is unknown.
+
+    Disabled by default: most of these fields are empty or never change on a given
+    car. Enable the ones you need from the device page; the diagnostics download
+    lists which fields the cloud actually fills and how often they change.
     """
 
     _attr_entity_category = EntityCategory.DIAGNOSTIC
+    _attr_entity_registry_enabled_default = False
 
     def __init__(self, coordinator: Any, vin: str, key: str, path: str, name: str) -> None:
         """Bind a raw diagnostic sensor to one status field of one vehicle."""

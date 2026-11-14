@@ -1,16 +1,21 @@
 """Remote sentry-mode and experimental AC switches for Zeekr vehicles."""
 
 import asyncio
-from typing import Any
+import time
+from typing import Any, Optional
 
 from homeassistant.components.switch import SwitchEntity
 from homeassistant.config_entries import ConfigEntry
-from homeassistant.core import HomeAssistant
+from homeassistant.core import HomeAssistant, callback
 from homeassistant.exceptions import HomeAssistantError
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 
 from .api import ZeekrApiError, ZeekrAuthError
-from .const import COMMAND_CONFIRM_ATTEMPTS, COMMAND_CONFIRM_DELAY
+from .const import (
+    COMMAND_CONFIRM_ATTEMPTS,
+    COMMAND_CONFIRM_DELAY,
+    COMMAND_OPTIMISTIC_HOLD,
+)
 from .coordinator import ZeekrRuntimeData, start_reauth
 from .entity import ZeekrVehicleEntity, boolean_value, value_at
 
@@ -26,12 +31,22 @@ class ZeekrSentrySwitch(ZeekrVehicleEntity, SwitchEntity):
         super().__init__(runtime.coordinator, vin)
         self._api = runtime.api
         self._attr_unique_id = f"{vin}_sentry_mode"
+        # Commanded state shown until the car reports it (or the hold expires).
+        self._pending: Optional[bool] = None
+        self._pending_until = 0.0
+        self._confirm_task: Optional[asyncio.Task] = None
 
-    @property
-    def is_on(self) -> bool:
+    def _reported(self) -> bool:
         """Read sentry state from the latest vehicle usage mode field."""
         value = self.vehicle_data.get("basicVehicleStatus", {}).get("usageMode")
         return str(value) == "1"
+
+    @property
+    def is_on(self) -> bool:
+        """Return the commanded state while it is pending, else the reported one."""
+        if self._pending is not None:
+            return self._pending
+        return self._reported()
 
     @property
     def available(self) -> bool:
@@ -42,32 +57,76 @@ class ZeekrSentrySwitch(ZeekrVehicleEntity, SwitchEntity):
             is not None
         )
 
+    @callback
+    def _handle_coordinator_update(self) -> None:
+        """Drop the optimistic state once the car confirms it or the hold expires."""
+        if self._pending is not None and (
+            self._reported() == self._pending
+            or time.monotonic() >= self._pending_until
+        ):
+            self._pending = None
+        super()._handle_coordinator_update()
+
     async def async_turn_on(self, **kwargs: Any) -> None:
-        """Send the RSM start command and poll again to confirm the resulting state."""
+        """Send the RSM start command and confirm the resulting state in background."""
         await self._set_sentry(True)
 
     async def async_turn_off(self, **kwargs: Any) -> None:
-        """Send the RSM stop command and poll again to confirm the resulting state."""
+        """Send the RSM stop command and confirm the resulting state in background."""
         await self._set_sentry(False)
 
+    async def async_will_remove_from_hass(self) -> None:
+        """Stop a running confirmation poll when the entity is removed."""
+        self._cancel_confirm()
+        await super().async_will_remove_from_hass()
+
+    def _cancel_confirm(self) -> None:
+        """Cancel the confirmation poll of a previous command, if still running."""
+        if self._confirm_task is not None and not self._confirm_task.done():
+            self._confirm_task.cancel()
+        self._confirm_task = None
+
     async def _set_sentry(self, enabled: bool) -> None:
-        """Execute a sentry command and surface provider failures to Home Assistant."""
+        """Execute a sentry command and surface provider failures to Home Assistant.
+
+        Only a rejected command raises. Once the cloud accepted it, the switch
+        shows the commanded state right away and a background task polls for the
+        car's confirmation, so a lagging or failing status poll never turns an
+        accepted command into an error.
+        """
+        self._cancel_confirm()
         try:
             await self._api.async_set_sentry(self.vin, enabled)
-            # The command round-trips cloud -> car -> cloud. Poll a few times over a
-            # short window and stop as soon as the car confirms; if it does not
-            # confirm within the window, accept optimistically (assumed_state) and
-            # let the next regular poll reflect it. Never raise on a lagging status.
-            for _ in range(COMMAND_CONFIRM_ATTEMPTS):
-                await asyncio.sleep(COMMAND_CONFIRM_DELAY)
-                await self.coordinator.async_refresh_vehicle(self.vin)
-                if self.is_on == enabled:
-                    break
         except ZeekrAuthError as err:
             start_reauth(self.hass)
             raise HomeAssistantError("Zeekr credentials expired") from err
         except ZeekrApiError as err:
             raise HomeAssistantError("Unable to change Zeekr sentry mode") from err
+        self._pending = enabled
+        self._pending_until = time.monotonic() + COMMAND_OPTIMISTIC_HOLD
+        self.async_write_ha_state()
+        self._confirm_task = self.hass.async_create_background_task(
+            self._async_confirm(), f"zeekr_sentry_confirm_{self.vin[-6:]}"
+        )
+
+    async def _async_confirm(self) -> None:
+        """Poll over a short window and stop as soon as the car confirms.
+
+        The command round-trips cloud -> car -> cloud. If the car does not confirm
+        within the window, the optimistic state stays until the hold expires and
+        the next regular poll reflects the truth.
+        """
+        for _ in range(COMMAND_CONFIRM_ATTEMPTS):
+            await asyncio.sleep(COMMAND_CONFIRM_DELAY)
+            try:
+                await self.coordinator.async_refresh_vehicle(self.vin)
+            except ZeekrAuthError:
+                start_reauth(self.hass)
+                return
+            except ZeekrApiError:
+                continue
+            if self._pending is None:
+                return
 
 
 class ZeekrAcSwitch(ZeekrVehicleEntity, SwitchEntity):
