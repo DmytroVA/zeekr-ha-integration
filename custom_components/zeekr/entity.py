@@ -19,6 +19,42 @@ def value_at(data: Dict[str, Any], path: str) -> Any:
     return value
 
 
+# v1.0 groups everything under basicVehicleStatus / additionalVehicleStatus; the
+# v2.0 document (kept under ``v2``) is flat and names two sections differently.
+_V2_SECTIONS = {"maintenanceStatus": "additionalMaintenanceStatus"}
+
+
+def v2_path(path: str) -> Optional[str]:
+    """Translate a v1.0 status path into its place in the v2.0 document."""
+    parts = path.split(".")
+    if parts[0] == "basicVehicleStatus" and len(parts) > 1:
+        return ".".join(["v2", "basic"] + parts[1:])
+    if parts[0] == "additionalVehicleStatus" and len(parts) > 2:
+        section = _V2_SECTIONS.get(parts[1], parts[1])
+        return ".".join(["v2", section] + parts[2:])
+    return None
+
+
+def has_v2(data: Dict[str, Any]) -> bool:
+    """True when the v2.0 status document was fetched for this vehicle."""
+    return isinstance(data.get("v2"), dict)
+
+
+def status_value(data: Dict[str, Any], path: str) -> Any:
+    """Read a status field, preferring the fresher v2.0 document.
+
+    v2.0 is what the app reads and is refreshed within seconds of a change;
+    v1.0 only about once a minute. Fields v2.0 does not carry (for example the
+    12 V battery voltage) fall back to v1.0.
+    """
+    alternative = v2_path(path)
+    if alternative is not None:
+        value = value_at(data, alternative)
+        if value not in (None, ""):
+            return value
+    return value_at(data, path)
+
+
 class ZeekrVehicleEntity(CoordinatorEntity[VehicleStatusCoordinator]):
     """Base entity that binds one coordinator-backed entity to one vehicle VIN."""
 

@@ -13,7 +13,7 @@ from homeassistant.core import HomeAssistant
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 
 from .coordinator import ZeekrRuntimeData
-from .entity import ZeekrVehicleEntity, boolean_value, value_at
+from .entity import ZeekrVehicleEntity, boolean_value, status_value
 
 _POS_TRUST = "basicVehicleStatus.position.posCanBeTrusted"
 
@@ -92,6 +92,33 @@ BINARY_SENSOR_FIELDS: List[Tuple[BinarySensorEntityDescription, str]] = [
         ),
         "additionalVehicleStatus.drivingSafetyStatus.engineHoodOpenStatus",
     ),
+    # ---- Fields only the v2.0 status document carries ----
+    (
+        BinarySensorEntityDescription(
+            key="low_beam", name="Low Beam", device_class=BinarySensorDeviceClass.LIGHT
+        ),
+        "additionalVehicleStatus.runningStatus.loBeam",
+    ),
+    (
+        BinarySensorEntityDescription(
+            key="high_beam", name="High Beam", device_class=BinarySensorDeviceClass.LIGHT
+        ),
+        "additionalVehicleStatus.runningStatus.hiBeam",
+    ),
+    (
+        BinarySensorEntityDescription(
+            key="hazard_lights",
+            name="Hazard Lights",
+            device_class=BinarySensorDeviceClass.LIGHT,
+        ),
+        "additionalVehicleStatus.runningStatus.hwl",
+    ),
+    (
+        BinarySensorEntityDescription(
+            key="park_comfort", name="Park Comfort Mode", icon="mdi:sofa"
+        ),
+        "basicVehicleStatus.parkComfortState",
+    ),
 ]
 
 
@@ -116,12 +143,12 @@ class ZeekrBinarySensor(ZeekrVehicleEntity, BinarySensorEntity):
     @property
     def is_on(self) -> bool:
         """Return the parsed provider flag; availability tracks missing values."""
-        return boolean_value(value_at(self.vehicle_data, self._path)) is True
+        return boolean_value(status_value(self.vehicle_data, self._path)) is True
 
     @property
     def available(self) -> bool:
         """Keep a missing or unknown provider flag from appearing as an off state."""
-        value = boolean_value(value_at(self.vehicle_data, self._path))
+        value = boolean_value(status_value(self.vehicle_data, self._path))
         return super().available and value is not None
 
 
@@ -145,12 +172,12 @@ class ZeekrGpsSpoofSensor(ZeekrVehicleEntity, BinarySensorEntity):
     @property
     def is_on(self) -> bool:
         """Return True when the reported position is not trustworthy."""
-        return boolean_value(value_at(self.vehicle_data, _POS_TRUST)) is not True
+        return boolean_value(status_value(self.vehicle_data, _POS_TRUST)) is not True
 
     @property
     def available(self) -> bool:
         """Only report once the vehicle actually sends a trust flag."""
-        trust = value_at(self.vehicle_data, _POS_TRUST)
+        trust = status_value(self.vehicle_data, _POS_TRUST)
         return super().available and trust not in (None, "")
 
 

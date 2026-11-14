@@ -27,7 +27,7 @@ from homeassistant.helpers.entity_platform import AddEntitiesCallback
 
 import json
 
-from .entity import ZeekrVehicleEntity, numeric_value, value_at
+from .entity import ZeekrVehicleEntity, numeric_value, status_value, value_at
 from .coordinator import ZeekrRuntimeData
 from .fields import RAW_FIELDS
 
@@ -54,6 +54,9 @@ class ZeekrSensorSpec:
     numeric: bool = True
     invalid: Tuple[float, ...] = ()
     value_map: Optional[Dict[str, str]] = None
+    # False for fields whose v2.0 encoding differs from the v1.0 one this sensor
+    # has always reported (keeps existing states and automations stable).
+    prefer_v2: bool = True
 
 
 # Original keys below are preserved verbatim so existing entity unique_ids
@@ -93,6 +96,7 @@ SENSOR_FIELDS: List[ZeekrSensorSpec] = [
         SensorEntityDescription(key="engine_status", name="Engine Status"),
         "basicVehicleStatus.engineStatus",
         numeric=False,
+        prefer_v2=False,
     ),
     ZeekrSensorSpec(
         SensorEntityDescription(
@@ -100,6 +104,7 @@ SENSOR_FIELDS: List[ZeekrSensorSpec] = [
             name="Tire Pressure Front Left",
             device_class=SensorDeviceClass.PRESSURE,
             state_class=SensorStateClass.MEASUREMENT,
+            suggested_display_precision=0,
             native_unit_of_measurement=UnitOfPressure.CBAR,
         ),
         "additionalVehicleStatus.maintenanceStatus.tyreStatusDriver",
@@ -110,6 +115,7 @@ SENSOR_FIELDS: List[ZeekrSensorSpec] = [
             name="Tire Pressure Front Right",
             device_class=SensorDeviceClass.PRESSURE,
             state_class=SensorStateClass.MEASUREMENT,
+            suggested_display_precision=0,
             native_unit_of_measurement=UnitOfPressure.CBAR,
         ),
         "additionalVehicleStatus.maintenanceStatus.tyreStatusPassenger",
@@ -120,6 +126,7 @@ SENSOR_FIELDS: List[ZeekrSensorSpec] = [
             name="Tire Pressure Rear Left",
             device_class=SensorDeviceClass.PRESSURE,
             state_class=SensorStateClass.MEASUREMENT,
+            suggested_display_precision=0,
             native_unit_of_measurement=UnitOfPressure.CBAR,
         ),
         "additionalVehicleStatus.maintenanceStatus.tyreStatusDriverRear",
@@ -130,6 +137,7 @@ SENSOR_FIELDS: List[ZeekrSensorSpec] = [
             name="Tire Pressure Rear Right",
             device_class=SensorDeviceClass.PRESSURE,
             state_class=SensorStateClass.MEASUREMENT,
+            suggested_display_precision=0,
             native_unit_of_measurement=UnitOfPressure.CBAR,
         ),
         "additionalVehicleStatus.maintenanceStatus.tyreStatusPassengerRear",
@@ -348,6 +356,7 @@ class ZeekrSensor(ZeekrVehicleEntity, SensorEntity):
         super().__init__(coordinator, vin)
         self.entity_description = spec.description
         self._path = spec.path
+        self._prefer_v2 = spec.prefer_v2
         self._numeric = spec.numeric
         self._invalid = spec.invalid
         self._value_map = spec.value_map
@@ -356,7 +365,10 @@ class ZeekrSensor(ZeekrVehicleEntity, SensorEntity):
     @property
     def native_value(self) -> Any:
         """Return the current provider field in a Home Assistant-compatible type."""
-        value = value_at(self.vehicle_data, self._path)
+        if self._prefer_v2:
+            value = status_value(self.vehicle_data, self._path)
+        else:
+            value = value_at(self.vehicle_data, self._path)
         if self._numeric:
             number = numeric_value(value)
             if number is not None and number in self._invalid:
@@ -393,7 +405,11 @@ class ZeekrLastUpdateSensor(ZeekrVehicleEntity, SensorEntity):
     @property
     def native_value(self) -> Optional[datetime]:
         """Convert the millisecond epoch ``updateTime`` to an aware datetime."""
-        ms = numeric_value(value_at(self.vehicle_data, "updateTime"))
+        stamps = [
+            numeric_value(value_at(self.vehicle_data, path))
+            for path in ("updateTime", "v2.updateTime")
+        ]
+        ms = max((stamp for stamp in stamps if stamp), default=None)
         if ms is None or ms <= 0:
             return None
         try:

@@ -36,6 +36,11 @@ integration and your phone app don't evict each other.
 
 ## How data freshness works (important)
 
+The integration reads two versions of the status document every poll: **v2.0**,
+which the official app uses (refreshed within seconds of a change, carries sentry
+state, seat heating, lights …) and **v1.0** for the few fields v2.0 lacks (12 V
+battery voltage). Typed entities prefer v2.0.
+
 The status document carries the car's own **`updateTime`** (last successful upload
 to the cloud). The integration polls every 60 seconds, but it only ever receives the
 document the car last uploaded — so values can be stale even though HA is polling
@@ -70,13 +75,14 @@ into *changing* (with change count and sample values), *constant* and
 | Platform | Entities |
 |---|---|
 | `sensor` | 27 typed (battery, range, interior/exterior temp, tyre pressures/temps, odometer, distances/days to service, 12 V voltage, charge current/voltage, avg consumption, PM2.5, speed, time-to-full, trip meters, …), `last_cloud_update`, **+ ~169 raw diagnostic sensors (disabled by default) covering every remaining field in the app's status model** (BasicVo, ElectricVehicleStatusVo, ClimateStatusVo, DrivingSafetyStatusVo, AdditionalMaintenanceStatusVo, RunningStatusVo, PollutionStatusVo, DrivingBehaviourStatusVo, BigdataVehicleStatusVo, PositionVo, mainBatteryStatus). Nested/JSON fields (`storageBoxStatus`, `fragItems`, …) are shown as compact JSON. |
-| `binary_sensor` | charging, plugged-in, 4 doors, trunk, hood, HV-battery optimization, **gps_spoofed** |
+| `binary_sensor` | charging, plugged-in, 4 doors, trunk, hood, HV-battery optimization, low/high beam, hazard lights, park comfort mode, **gps_spoofed** |
 | `device_tracker` | location (trusted-position holding) |
-| `switch` | **sentry mode**, **air conditioning** (both confirmed on a Zeekr 001) |
-| `button` | **refresh** (confirmed), + 10 command buttons *(experimental, disabled by default)*: AC start/stop, rapid cool/warm, defrost start/stop, cabin ventilation start/stop, flash & horn, trunk open |
+| `switch` | **sentry mode**, **air conditioning**, **defrost**, **cabin ventilation**, **steering-wheel heating** |
+| `select` | **seat heating** and **seat ventilation** level (`off`, `1`–`3`) for driver, passenger and both rear seats |
+| `button` | **refresh**, **rapid cool**, **rapid warm**; flash & horn and trunk open *(experimental, disabled by default)* |
 | `number` | AC target temperature, AC duration (local helpers used by the AC controls) |
 
-Enable the experimental entities from the device page if you want to try them.
+Switches and selectors that depend on optional equipment are only created when the car reports the matching status field. Enable the experimental buttons from the device page if you want to try them.
 
 ## Commands
 
@@ -89,24 +95,26 @@ with the car's own reason. The status document itself is only refreshed by the
 car about once a minute, so it is used as the final reconciliation.
 
 The command envelope (`{serviceId, command, setting:{serviceParameters, operationScheduling}}`)
-is **confirmed** — the sentry command uses it live. Individual `serviceId` acceptance
-depends on the vehicle generation, so everything except sentry/refresh is marked
-experimental until confirmed on your car.
+is the one the official app sends. Individual `serviceId` acceptance depends on the
+vehicle generation.
 
 | Function | serviceId | Status | Notes |
 |---|---|---|---|
 | Refresh status | — | **confirmed** | immediate poll |
-| Sentry mode | `RSM` | **confirmed** | works on the live account |
-| Air conditioning | `ZAF` | **confirmed** (Zeekr 001) | params `AC`, `AC.temp`, `AC.duration` |
-| Rapid cool / warm | `ZAF` | experimental | AC at 15.5 °C / 28.5 °C |
-| Defrost | `ZAF` | experimental | `DF`, `DF.level`, `DF.duration` |
-| Cabin ventilation | `RCC` | experimental | `rcc.conditioner`, `rcc.ventilation`, duration×6 |
-| Seat heating / vent | `ZAF` (`SH.xx`/`SV.xx`) or `RCE` | experimental | two generations exist; order-sensitive (`.level` before the switch) |
-| Steering-wheel heat | `RCE`/`ZAF` | experimental | `rce.heat=steering_wheel` |
+| Sentry mode | `RSM` | **confirmed** | state: `basic.vstdModeStatus` 1–4 |
+| Air conditioning | `ZAF` | **confirmed** | `AC`, `AC.temp`, `AC.duration`; state `preClimateActive` |
+| Rapid cool / warm | `ZAF` | **confirmed** | AC at 15.5 °C / 28.5 °C |
+| Defrost | `ZAF` | **confirmed** | `DF`, `DF.level`, `DF.duration`; state `defrost` |
+| Cabin ventilation | `RCC` | **confirmed** | `rcc.conditioner`, `rcc.ventilation`, duration×6; state `airBlowerActive` |
+| Seat heating | `ZAF` | **confirmed** | `SH.11` driver, `SH.19` passenger, `SH.21`/`SH.29` rear + `.level`, `.duration` |
+| Seat ventilation | `ZAF` | **confirmed** (driver) | `SV.11` … same scheme |
+| Steering-wheel heat | `ZAF` | **confirmed** | `SW`, `SW.level`, `SW.duration`; state `steerWhlHeatingSts` 1 = on |
 | Door unlock / lock | `RDU` / `RDL` | experimental | `target` param (`all`, `front-left`, …); unlock needs the vehicle PIN |
 | Trunk open / close | `RTU` / `RTL` | experimental | |
 | Hood | `RLU` / `RDU` | experimental | generation-dependent |
 | Flash & horn | `RHL` | experimental | |
+
+"Confirmed" means verified on a Zeekr 001; other models may differ.
 
 For anything not wired to an entity, use the **`zeekr.remote_control`** service:
 

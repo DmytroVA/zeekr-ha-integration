@@ -14,6 +14,7 @@ from homeassistant.helpers import entity_registry as er
 from homeassistant.helpers.aiohttp_client import async_get_clientsession
 
 from .api import ZeekrApi, ZeekrApiError, ZeekrAuthError
+from .button import REMOVED_BUTTON_KEYS
 from .commands import async_run_command
 from .const import (
     DOMAIN,
@@ -66,6 +67,16 @@ async def async_migrate_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
                     disabled_by=er.RegistryEntryDisabler.INTEGRATION,
                 )
         hass.config_entries.async_update_entry(entry, minor_version=2)
+    if entry.version == 1 and entry.minor_version < 3:
+        # 1.5: start/stop button pairs were replaced by switches.
+        registry = er.async_get(hass)
+        for entity in er.async_entries_for_config_entry(registry, entry.entry_id):
+            _vin, _, key = entity.unique_id.partition("_")
+            if entity.domain == "button" and key in {
+                f"cmd_{removed}" for removed in REMOVED_BUTTON_KEYS
+            }:
+                registry.async_remove(entity.entity_id)
+        hass.config_entries.async_update_entry(entry, minor_version=3)
     return True
 
 

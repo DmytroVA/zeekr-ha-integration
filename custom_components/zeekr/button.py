@@ -48,24 +48,6 @@ class ZeekrCommandSpec:
     experimental: bool = True
 
 
-def _ac_start(setting: Dict[str, Any]) -> Dict[str, Any]:
-    temp = setting.get("temp", 22.0)
-    duration = int(setting.get("duration", 15))
-    return {
-        "service_id": "ZAF",
-        "command": "",
-        "parameters": [
-            {"key": "AC", "value": True},
-            {"key": "AC.temp", "value": str(temp)},
-            {"key": "AC.duration", "value": duration},
-        ],
-    }
-
-
-def _ac_stop(_setting: Dict[str, Any]) -> Dict[str, Any]:
-    return {"service_id": "ZAF", "command": "", "parameters": [{"key": "AC", "value": False}]}
-
-
 def _rapid(temp: float) -> Callable[[Dict[str, Any]], Dict[str, Any]]:
     def _build(setting: Dict[str, Any]) -> Dict[str, Any]:
         duration = int(setting.get("duration", 15))
@@ -82,40 +64,6 @@ def _rapid(temp: float) -> Callable[[Dict[str, Any]], Dict[str, Any]]:
     return _build
 
 
-def _defrost_start(_setting: Dict[str, Any]) -> Dict[str, Any]:
-    return {
-        "service_id": "ZAF",
-        "command": "",
-        "parameters": [
-            {"key": "DF", "value": True},
-            {"key": "DF.level", "value": "2"},
-            {"key": "DF.duration", "value": 15},
-        ],
-    }
-
-
-def _defrost_stop(_setting: Dict[str, Any]) -> Dict[str, Any]:
-    return {"service_id": "ZAF", "command": "", "parameters": [{"key": "DF", "value": False}]}
-
-
-def _cabin_vent(start: bool) -> Callable[[Dict[str, Any]], Dict[str, Any]]:
-    def _build(setting: Dict[str, Any]) -> Dict[str, Any]:
-        result: Dict[str, Any] = {
-            "service_id": "RCC",
-            "command": "start" if start else "stop",
-            "parameters": [
-                {"key": "rcc.conditioner", "value": "50"},
-                {"key": "rcc.ventilation", "value": "0"},
-            ],
-        }
-        if start:
-            # RCC schedules in six-second units in the app model.
-            result["duration"] = int(setting.get("duration", 15)) * 6
-        return result
-
-    return _build
-
-
 def _flash_horn(_setting: Dict[str, Any]) -> Dict[str, Any]:
     return {"service_id": "RHL", "command": "", "parameters": [{"key": "rhl", "value": "1"}]}
 
@@ -125,27 +73,26 @@ def _trunk_open(_setting: Dict[str, Any]) -> Dict[str, Any]:
 
 
 COMMAND_BUTTONS: List[ZeekrCommandSpec] = [
-    ZeekrCommandSpec("ac_start", "AC Start (experimental)", _ac_start),
-    ZeekrCommandSpec("ac_stop", "AC Stop (experimental)", _ac_stop),
-    ZeekrCommandSpec("rapid_cool", "Rapid Cool (experimental)", _rapid(RAPID_COOL_TEMP)),
-    ZeekrCommandSpec("rapid_warm", "Rapid Warm (experimental)", _rapid(RAPID_WARM_TEMP)),
-    ZeekrCommandSpec("defrost_start", "Defrost Start (experimental)", _defrost_start),
-    ZeekrCommandSpec("defrost_stop", "Defrost Stop (experimental)", _defrost_stop),
-    ZeekrCommandSpec(
-        "cabin_vent_start", "Cabin Ventilation Start (experimental)", _cabin_vent(True)
-    ),
-    ZeekrCommandSpec(
-        "cabin_vent_stop", "Cabin Ventilation Stop (experimental)", _cabin_vent(False)
-    ),
+    ZeekrCommandSpec("rapid_cool", "Rapid Cool", _rapid(RAPID_COOL_TEMP), False),
+    ZeekrCommandSpec("rapid_warm", "Rapid Warm", _rapid(RAPID_WARM_TEMP), False),
     ZeekrCommandSpec("flash_horn", "Flash & Horn (experimental)", _flash_horn),
     ZeekrCommandSpec("trunk_open", "Trunk Open (experimental)", _trunk_open),
 ]
 
+# Buttons of earlier versions that switches replaced; their registry entries are
+# removed by the config-entry migration.
+REMOVED_BUTTON_KEYS = (
+    "ac_start",
+    "ac_stop",
+    "defrost_start",
+    "defrost_stop",
+    "cabin_vent_start",
+    "cabin_vent_stop",
+)
+
 
 class ZeekrCommandButton(ZeekrVehicleEntity, ButtonEntity):
     """Send one remote command built from the reverse-engineered app model."""
-
-    _attr_entity_registry_enabled_default = False
 
     def __init__(self, runtime: ZeekrRuntimeData, vin: str, spec: ZeekrCommandSpec) -> None:
         """Bind a command button to one vehicle and the shared account API client."""
@@ -153,6 +100,7 @@ class ZeekrCommandButton(ZeekrVehicleEntity, ButtonEntity):
         self._runtime = runtime
         self._spec = spec
         self._attr_name = spec.name
+        self._attr_entity_registry_enabled_default = not spec.experimental
         self._attr_unique_id = f"{vin}_cmd_{spec.key}"
 
     async def async_press(self) -> None:

@@ -4,7 +4,15 @@ from datetime import timedelta
 
 DOMAIN = "zeekr"
 NAME = "Zeekr"
-PLATFORMS = ["sensor", "binary_sensor", "device_tracker", "button", "switch", "number"]
+PLATFORMS = [
+    "sensor",
+    "binary_sensor",
+    "device_tracker",
+    "button",
+    "switch",
+    "select",
+    "number",
+]
 SCAN_INTERVAL = timedelta(seconds=60)
 
 # Remote commands: how often to ask the cloud for a command's execution result
