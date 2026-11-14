@@ -5,7 +5,7 @@ from datetime import timedelta
 DOMAIN = "zeekr"
 NAME = "Zeekr"
 PLATFORMS = ["sensor", "binary_sensor", "device_tracker", "button", "switch", "number"]
-SCAN_INTERVAL = timedelta(seconds=60)
+SCAN_INTERVAL = timedelta(seconds=300)
 
 CONF_MOBILE = "mobile"
 CONF_DEVICE_ID = "device_id"

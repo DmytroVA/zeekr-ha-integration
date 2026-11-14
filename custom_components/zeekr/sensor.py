@@ -161,7 +161,6 @@ SENSOR_FIELDS: List[ZeekrSensorSpec] = [
         SensorEntityDescription(
             key="average_power_consumption",
             name="Average Power Consumption",
-            device_class=SensorDeviceClass.ENERGY,
             native_unit_of_measurement=UnitOfEnergy.KILO_WATT_HOUR,
             state_class=SensorStateClass.MEASUREMENT,
         ),
