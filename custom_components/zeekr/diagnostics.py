@@ -30,11 +30,14 @@ TO_REDACT = {
 def _redact_status(status: Dict[str, Any]) -> Dict[str, Any]:
     """Redact position coordinates inside a vehicle status payload."""
     data = copy.deepcopy(status)
-    position = data.get("basicVehicleStatus", {}).get("position")
-    if isinstance(position, dict):
-        for key in ("latitude", "longitude"):
-            if key in position:
-                position[key] = "**REDACTED**"
+    for position in (
+        data.get("basicVehicleStatus", {}).get("position"),
+        data.get("v2", {}).get("basic", {}).get("position"),
+    ):
+        if isinstance(position, dict):
+            for key in ("latitude", "longitude"):
+                if key in position:
+                    position[key] = "**REDACTED**"
     return data
 
 

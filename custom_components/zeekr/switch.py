@@ -83,10 +83,9 @@ class ZeekrCommandSwitch(ZeekrVehicleEntity, SwitchEntity):
 
 
 class ZeekrSentrySwitch(ZeekrCommandSwitch):
-    """Control the RSM sentry service and reflect the last reported usage mode."""
+    """Control the RSM sentry service and reflect the reported sentry state."""
 
     _attr_name = "Sentry Mode"
-    _attr_assumed_state = True
 
     def __init__(self, runtime: ZeekrRuntimeData, vin: str) -> None:
         """Bind the RSM control to one vehicle."""
@@ -94,17 +93,15 @@ class ZeekrSentrySwitch(ZeekrCommandSwitch):
         self._attr_unique_id = f"{vin}_sentry_mode"
 
     def _reported(self) -> bool:
-        """Read sentry state from the latest vehicle usage mode field."""
-        value = self.vehicle_data.get("basicVehicleStatus", {}).get("usageMode")
-        return str(value) == "1"
+        """Read sentry state the way the app does: ``basic.vstdModeStatus`` 1-4.
 
-    @property
-    def available(self) -> bool:
-        """Require a reported usage mode before presenting the switch as available."""
-        return (
-            super().available
-            and self.vehicle_data.get("basicVehicleStatus", {}).get("usageMode")
-            is not None
+        (``usageMode`` is not a sentry flag: it is 1 whenever the car is awake.)
+        """
+        return str(value_at(self.vehicle_data, "v2.basic.vstdModeStatus")) in (
+            "1",
+            "2",
+            "3",
+            "4",
         )
 
     async def async_turn_on(self, **kwargs: Any) -> None:
@@ -141,9 +138,12 @@ class ZeekrAcSwitch(ZeekrCommandSwitch):
 
     def _reported(self) -> bool:
         """Reflect the vehicle's reported pre-conditioning state."""
-        value = value_at(
-            self.vehicle_data, "additionalVehicleStatus.climateStatus.preClimateActive"
-        )
+        value = value_at(self.vehicle_data, "v2.climateStatus.preClimateActive")
+        if value is None:
+            value = value_at(
+                self.vehicle_data,
+                "additionalVehicleStatus.climateStatus.preClimateActive",
+            )
         return boolean_value(value) is True
 
     async def async_turn_on(self, **kwargs: Any) -> None:
