@@ -1,5 +1,6 @@
 """Remote sentry-mode and experimental AC switches for Zeekr vehicles."""
 
+import asyncio
 from typing import Any
 
 from homeassistant.components.switch import SwitchEntity
@@ -9,6 +10,7 @@ from homeassistant.exceptions import HomeAssistantError
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 
 from .api import ZeekrApiError, ZeekrAuthError
+from .const import COMMAND_CONFIRM_ATTEMPTS, COMMAND_CONFIRM_DELAY
 from .coordinator import ZeekrRuntimeData, start_reauth
 from .entity import ZeekrVehicleEntity, boolean_value, value_at
 
@@ -52,11 +54,15 @@ class ZeekrSentrySwitch(ZeekrVehicleEntity, SwitchEntity):
         """Execute a sentry command and surface provider failures to Home Assistant."""
         try:
             await self._api.async_set_sentry(self.vin, enabled)
-            await self.coordinator.async_refresh_vehicle(self.vin)
-            # The command round-trips cloud -> car -> cloud, so the freshly polled
-            # status often has not caught up yet. Treat an accepted command as
-            # success; the next poll reflects the confirmed state. Do not raise on
-            # a not-yet-confirmed mismatch.
+            # The command round-trips cloud -> car -> cloud. Poll a few times over a
+            # short window and stop as soon as the car confirms; if it does not
+            # confirm within the window, accept optimistically (assumed_state) and
+            # let the next regular poll reflect it. Never raise on a lagging status.
+            for _ in range(COMMAND_CONFIRM_ATTEMPTS):
+                await asyncio.sleep(COMMAND_CONFIRM_DELAY)
+                await self.coordinator.async_refresh_vehicle(self.vin)
+                if self.is_on == enabled:
+                    break
         except ZeekrAuthError as err:
             start_reauth(self.hass)
             raise HomeAssistantError("Zeekr credentials expired") from err

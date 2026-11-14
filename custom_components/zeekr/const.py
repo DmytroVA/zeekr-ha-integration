@@ -7,6 +7,12 @@ NAME = "Zeekr"
 PLATFORMS = ["sensor", "binary_sensor", "device_tracker", "button", "switch", "number"]
 SCAN_INTERVAL = timedelta(seconds=300)
 
+# After a remote command, re-poll the vehicle status up to this many times,
+# waiting this many seconds between tries, to confirm execution quickly instead
+# of waiting for the next regular poll. The command path is cloud -> car -> cloud.
+COMMAND_CONFIRM_ATTEMPTS = 6
+COMMAND_CONFIRM_DELAY = 5
+
 CONF_MOBILE = "mobile"
 CONF_DEVICE_ID = "device_id"
 CONF_JWT_TOKEN = "jwt_token"
