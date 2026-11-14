@@ -8,7 +8,7 @@ from homeassistant.components import websocket_api
 from homeassistant.components.http import StaticPathConfig
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant, SupportsResponse, callback
-from homeassistant.exceptions import HomeAssistantError
+from homeassistant.exceptions import HomeAssistantError, Unauthorized
 from homeassistant.helpers import config_validation as cv
 from homeassistant.helpers import entity_registry as er
 from homeassistant.helpers.aiohttp_client import async_get_clientsession
@@ -221,6 +221,40 @@ def _async_register_services(hass: HomeAssistant) -> None:
             duration=call.data.get("duration"),
             wait_result=call.data["wait_result"],
         )
+
+    async def api_get(call: Any) -> Dict[str, Any]:
+        """Admin-only research helper: signed GET to a vehicle-API path."""
+        if call.context.user_id:
+            user = await hass.auth.async_get_user(call.context.user_id)
+            if user is None or not user.is_admin:
+                raise Unauthorized()
+        runtime = get_runtime(hass)
+        vin = call.data["vin"]
+        if vin not in runtime.api.vehicles:
+            raise HomeAssistantError("Vehicle is not part of this Zeekr account")
+        try:
+            response = await runtime.api.async_raw_get(
+                vin, call.data["path"], call.data.get("params")
+            )
+        except ZeekrAuthError as err:
+            raise HomeAssistantError(f"Zeekr refused the request: {err}") from err
+        except ZeekrApiError as err:
+            raise HomeAssistantError(f"Zeekr request failed: {err}") from err
+        return {"response": response}
+
+    hass.services.async_register(
+        DOMAIN,
+        "api_get",
+        api_get,
+        schema=vol.Schema(
+            {
+                vol.Required("vin"): cv.string,
+                vol.Required("path"): vol.All(cv.string, vol.Match(r"^/[\w\-./]+$")),
+                vol.Optional("params"): {cv.string: cv.string},
+            }
+        ),
+        supports_response=SupportsResponse.ONLY,
+    )
 
     hass.services.async_register(
         DOMAIN,

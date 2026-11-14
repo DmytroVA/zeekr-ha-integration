@@ -249,6 +249,21 @@ class ZeekrApi:
         data = response.get("data")
         return data if isinstance(data, dict) else {"raw": data}
 
+    async def async_raw_get(
+        self, vin: str, path: str, params: Optional[Mapping[str, str]] = None
+    ) -> Dict[str, Any]:
+        """Send a signed GET to any path of the vehicle API and return the raw answer.
+
+        Research helper behind the ``zeekr.api_get`` service: it lets new read
+        endpoints be explored on a live account without shipping code for each.
+        """
+        return await self._new_call(
+            "GET",
+            path,
+            params=dict(params) if params else None,
+            headers={"X-VIN": vin, "X-APP-ID": APP_ID},
+        )
+
     async def async_get_monthly_statistics(
         self, vin: str, year_month: str, account_id: str
     ) -> Any:

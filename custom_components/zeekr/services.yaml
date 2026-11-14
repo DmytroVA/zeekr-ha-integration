@@ -76,3 +76,24 @@ remote_control:
       default: true
       selector:
         boolean: {}
+
+api_get:
+  name: API GET (research)
+  description: Administrator-only. Send a signed GET request to a path of the Zeekr vehicle API and return the raw answer. For exploring read endpoints; it cannot send commands.
+  fields:
+    vin:
+      name: Vehicle VIN
+      required: true
+      selector:
+        text: {}
+    path:
+      name: Path
+      required: true
+      example: /ms-vehicle-status/api/v1.0/vehicle/status/latest
+      selector:
+        text: {}
+    params:
+      name: Query parameters
+      required: false
+      selector:
+        object: {}
