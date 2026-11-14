@@ -1,6 +1,8 @@
 """Set up the Zeekr integration, services, WebSocket handlers, and entities."""
 
+import asyncio
 from pathlib import Path
+import time
 from typing import Any, Dict
 
 import voluptuous as vol
@@ -15,6 +17,8 @@ from homeassistant.helpers.aiohttp_client import async_get_clientsession
 
 from .api import ZeekrApi, ZeekrApiError, ZeekrAuthError
 from .const import (
+    COMMAND_RESULT_INTERVAL,
+    COMMAND_RESULT_TIMEOUT,
     DOMAIN,
     PLATFORMS,
     WS_LIST_VEHICLES,
@@ -142,6 +146,30 @@ async def websocket_start_sentinel(
         connection.send_error(msg["id"], "unknown_error", str(err)[:160])
 
 
+async def _async_wait_process_result(
+    api: ZeekrApi, vin: str, session_id: str
+) -> Dict[str, Any]:
+    """Poll a command's execution result the way the app does and report it.
+
+    Returns every distinct answer with the second it was first seen, so the
+    meaning of the cloud's status codes can be read from real commands. A failing
+    result query never turns an accepted command into an error.
+    """
+    started = time.monotonic()
+    seen: list = []
+    last: Any = None
+    while time.monotonic() - started < COMMAND_RESULT_TIMEOUT:
+        try:
+            current: Any = await api.async_query_process_result(vin, session_id)
+        except ZeekrApiError as err:
+            current = {"error": str(err)}
+        if current != last:
+            seen.append({"after_s": round(time.monotonic() - started, 1), **current})
+            last = current
+        await asyncio.sleep(COMMAND_RESULT_INTERVAL)
+    return {"session_id": session_id, "answers": seen}
+
+
 def _async_register_services(hass: HomeAssistant) -> None:
     """Register response actions for monthly statistics and vehicle messages."""
     month_validator = vol.All(cv.string, vol.Match(r"^\d{4}-(0[1-9]|1[0-2])$"))
@@ -223,8 +251,17 @@ def _async_register_services(hass: HomeAssistant) -> None:
             raise HomeAssistantError("Zeekr credentials expired") from err
         except ZeekrApiError as err:
             raise HomeAssistantError(f"Zeekr rejected the command: {err}") from err
-        await runtime.coordinator.async_refresh_vehicle(vin)
-        return {"response": response}
+        result: Dict[str, Any] = {"response": response}
+        session_id = (response.get("data") or {}).get("sessionId")
+        if call.data["wait_result"] and session_id:
+            result["process_result"] = await _async_wait_process_result(
+                runtime.api, vin, str(session_id)
+            )
+        try:
+            await runtime.coordinator.async_refresh_vehicle(vin)
+        except ZeekrApiError:
+            pass
+        return result
 
     hass.services.async_register(
         DOMAIN,
@@ -241,6 +278,7 @@ def _async_register_services(hass: HomeAssistant) -> None:
                     )
                 ],
                 vol.Optional("duration"): vol.Coerce(int),
+                vol.Optional("wait_result", default=True): cv.boolean,
             }
         ),
         supports_response=SupportsResponse.OPTIONAL,

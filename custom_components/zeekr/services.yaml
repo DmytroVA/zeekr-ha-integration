@@ -70,3 +70,9 @@ remote_control:
           min: 0
           max: 600
           mode: box
+    wait_result:
+      name: Wait for result
+      description: Poll the command's execution result for up to 25 seconds and return every answer.
+      default: true
+      selector:
+        boolean: {}

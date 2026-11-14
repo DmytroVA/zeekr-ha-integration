@@ -15,6 +15,9 @@ COMMAND_CONFIRM_DELAY = 5
 # How long a switch keeps showing the commanded state while the car has not yet
 # reported it. After this window the next poll's reported state wins again.
 COMMAND_OPTIMISTIC_HOLD = 120
+# The official app waits up to 23 s for a command's execution result.
+COMMAND_RESULT_TIMEOUT = 25
+COMMAND_RESULT_INTERVAL = 1.5
 
 CONF_MOBILE = "mobile"
 CONF_DEVICE_ID = "device_id"

@@ -229,6 +229,26 @@ class ZeekrApi:
         self._expect_code(response, "000000")
         return response
 
+    async def async_query_process_result(
+        self, vin: str, session_id: str
+    ) -> Dict[str, Any]:
+        """Return the execution result of a remote command by its ``sessionId``.
+
+        This is what the official app polls after ``remoteControl/control`` instead
+        of waiting for the next status upload (the car only uploads its status
+        about once a minute). The result carries ``status``, ``description`` and
+        ``descriptionCode``.
+        """
+        response = await self._new_call(
+            "GET",
+            "/ms-remote-control/v1.0/remoteControl/queryProcessResult",
+            params={"sessionId": session_id},
+            headers={"X-VIN": vin, "X-APP-ID": APP_ID},
+        )
+        self._expect_code(response, "000000")
+        data = response.get("data")
+        return data if isinstance(data, dict) else {"raw": data}
+
     async def async_get_monthly_statistics(
         self, vin: str, year_month: str, account_id: str
     ) -> Any:
