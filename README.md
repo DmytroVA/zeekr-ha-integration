@@ -65,8 +65,8 @@ cloud reject further uploads, freezing the data. This integration:
 the **Diagnostic** category: most of them are empty or never change on a given
 car. Enable the ones you need from the device page.
 
-Raw sensors are named `Raw <field>` (for example *Raw Voltage*), so their entity IDs
-look like `sensor.<device>_raw_voltage`. Installations set up before 1.7.7 keep the
+Raw sensors are named `Raw <field>` (for example *Raw Charger State*), so their entity
+IDs look like `sensor.<device>_raw_charger_state`. Installations set up before 1.7.7 keep the
 entity IDs they already have (without `raw_`, and with `_2` where two sensors shared
 a name, e.g. `…_distance_to_empty_2`, `…_voltage_2`); only the displayed name changes.
 
