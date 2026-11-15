@@ -118,6 +118,31 @@ class VehicleStatusCoordinator(DataUpdateCoordinator[Dict[str, Dict[str, Any]]])
         self.api = api
         self.observer = FieldObserver(hass)
         self._failed_vins: Set[str] = set()
+        self._missing_v2_vins: Set[str] = set()
+
+    def _keep_v2(self, vin: str, status: Dict[str, Any]) -> Dict[str, Any]:
+        """Carry the previous v2.0 document over when this poll did not get one.
+
+        The v2.0 request is best effort: when it fails the status holds only
+        v1.0, and entities that read only ``v2.*`` (sentry, defrost, seats,
+        steering wheel, windows ...) would flip to off/closed for one cycle.
+        Keeping the last known v2.0 document leaves their state unchanged.
+        """
+        if "v2" in status:
+            if vin in self._missing_v2_vins:
+                self._missing_v2_vins.discard(vin)
+                _LOGGER.info("Zeekr vehicle ...%s v2.0 status is back", vin[-6:])
+            return status
+        previous = (self.data or {}).get(vin, {}).get("v2")
+        if previous is None:
+            return status
+        if vin not in self._missing_v2_vins:
+            self._missing_v2_vins.add(vin)
+            _LOGGER.warning(
+                "Zeekr vehicle ...%s: v2.0 status unavailable, keeping the last one",
+                vin[-6:],
+            )
+        return {**status, "v2": previous}
 
     async def _async_update_data(self) -> Dict[str, Dict[str, Any]]:
         """Fetch the newest status for every configured supported vehicle.
@@ -142,6 +167,7 @@ class VehicleStatusCoordinator(DataUpdateCoordinator[Dict[str, Dict[str, Any]]])
                     )
             else:
                 self.observer.observe(vin, result[vin])
+                result[vin] = self._keep_v2(vin, result[vin])
                 if vin in self._failed_vins:
                     self._failed_vins.discard(vin)
                     _LOGGER.info("Zeekr vehicle ...%s is updating again", vin[-6:])
@@ -153,6 +179,7 @@ class VehicleStatusCoordinator(DataUpdateCoordinator[Dict[str, Dict[str, Any]]])
         """Refresh one vehicle immediately and preserve the other vehicles' data."""
         status = await self.api.async_get_vehicle_status(vin)
         self.observer.observe(vin, status)
+        status = self._keep_v2(vin, status)
         updated = dict(self.data or {})
         updated[vin] = status
         self.async_set_updated_data(updated)

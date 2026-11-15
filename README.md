@@ -39,7 +39,9 @@ integration and your phone app don't evict each other.
 The integration reads two versions of the status document every poll: **v2.0**,
 which the official app uses (refreshed within seconds of a change, carries sentry
 state, seat heating, lights …) and **v1.0** for the few fields v2.0 lacks (12 V
-battery voltage). Typed entities prefer v2.0.
+battery voltage). Typed entities prefer v2.0. If the v2.0 request fails on a poll,
+the last v2.0 document is kept, so entities that only v2.0 reports (sentry, seats,
+steering wheel, defrost, windows …) hold their state instead of flipping to off.
 
 The status document carries the car's own **`updateTime`** (last successful upload
 to the cloud). The integration polls every 60 seconds, but it only ever receives the
