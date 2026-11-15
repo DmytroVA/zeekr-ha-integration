@@ -44,6 +44,16 @@
           "engaged": "Engaged"
         }
       }
+    },
+    "select": {
+      "seat_level": {
+        "state": {
+          "off": "Off",
+          "low": "Low",
+          "medium": "Medium",
+          "high": "High"
+        }
+      }
     }
   }
 }

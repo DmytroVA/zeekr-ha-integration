@@ -12,7 +12,11 @@ from .command_entity import ZeekrCommandEntity
 from .coordinator import ZeekrRuntimeData
 from .entity import has_v2, value_at
 
-OPTIONS = ["off", "1", "2", "3"]
+# The app's own seat screen uses levels 0-3 and cycles 0 -> 3 -> 2 -> 1 -> 0 on
+# each tap (strongest first), with icons hot_1 .. hot_3: 1 is the weakest level.
+LEVELS = {"low": "1", "medium": "2", "high": "3"}
+OPTIONS = ["off", *LEVELS]
+_OPTION_BY_LEVEL = {level: option for option, level in LEVELS.items()}
 
 
 @dataclass(frozen=True)
@@ -40,9 +44,10 @@ SEAT_SELECTS: List[ZeekrSeatSpec] = [
 
 
 class ZeekrSeatSelect(ZeekrCommandEntity, SelectEntity):
-    """Pick a seat heating/ventilation level (``off`` or 1-3)."""
+    """Pick a seat heating/ventilation level: off, low, medium or high."""
 
     _attr_options = OPTIONS
+    _attr_translation_key = "seat_level"
 
     def __init__(self, runtime: ZeekrRuntimeData, vin: str, spec: ZeekrSeatSpec) -> None:
         """Bind one seat function of one vehicle."""
@@ -55,7 +60,7 @@ class ZeekrSeatSelect(ZeekrCommandEntity, SelectEntity):
     def _reported_value(self) -> str:
         """Map the reported level to an option; unknown codes read as ``off``."""
         level = str(value_at(self.vehicle_data, self._spec.path))
-        return level if level in ("1", "2", "3") else "off"
+        return _OPTION_BY_LEVEL.get(level, "off")
 
     @property
     def current_option(self) -> str:
@@ -70,7 +75,7 @@ class ZeekrSeatSelect(ZeekrCommandEntity, SelectEntity):
         else:
             parameters = [
                 {"key": param, "value": True},
-                {"key": f"{param}.level", "value": option},
+                {"key": f"{param}.level", "value": LEVELS[option]},
                 {"key": f"{param}.duration", "value": self._duration()},
             ]
         await self._async_command(

@@ -44,6 +44,16 @@
           "engaged": "已启用"
         }
       }
+    },
+    "select": {
+      "seat_level": {
+        "state": {
+          "off": "关闭",
+          "low": "低",
+          "medium": "中",
+          "high": "高"
+        }
+      }
     }
   }
 }

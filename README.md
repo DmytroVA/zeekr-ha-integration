@@ -78,7 +78,7 @@ into *changing* (with change count and sample values), *constant* and
 | `binary_sensor` | charging, plugged-in, 4 doors, trunk, hood, HV-battery optimization, low/high beam, hazard lights, park comfort mode, **gps_spoofed** |
 | `device_tracker` | location (trusted-position holding) |
 | `switch` | **sentry mode**, **air conditioning**, **defrost**, **cabin ventilation**, **steering-wheel heating** |
-| `select` | **seat heating** and **seat ventilation** level (`off`, `1`–`3`) for driver, passenger and both rear seats |
+| `select` | **seat heating** and **seat ventilation** level (`off`, `low`, `medium`, `high`) for driver, passenger and both rear seats |
 | `button` | **refresh**, **rapid cool**, **rapid warm**; flash & horn and trunk open *(experimental, disabled by default)* |
 | `number` | AC target temperature, AC duration (local helpers used by the AC controls) |
 
