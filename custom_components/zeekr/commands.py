@@ -9,6 +9,7 @@ final reconciliation, not as the confirmation.
 """
 
 import asyncio
+import logging
 import time
 from typing import Any, Dict, List, Optional
 
@@ -18,6 +19,8 @@ from homeassistant.exceptions import HomeAssistantError
 from .api import ZeekrApiError, ZeekrAuthError
 from .const import COMMAND_RESULT_INTERVAL, COMMAND_RESULT_TIMEOUT
 from .coordinator import ZeekrRuntimeData, start_reauth
+
+_LOGGER = logging.getLogger(__name__)
 
 STATUS_EXECUTED = "1"
 STATUS_FAILED = "2"
@@ -44,8 +47,13 @@ async def async_run_command(
     that it failed, or no verdict arrives in time.
     """
     sent = False
+    tag = f"...{vin[-6:]} {service_id}/{command or '-'}"
     try:
-        async with runtime.command_lock(vin):
+        lock = runtime.command_lock(vin)
+        if lock.locked():
+            _LOGGER.debug("Zeekr %s: queued behind another command", tag)
+        async with lock:
+            _LOGGER.debug("Zeekr %s: sending %s", tag, parameters)
             response = await _async_send(
                 hass,
                 runtime,
@@ -59,17 +67,28 @@ async def async_run_command(
             outcome: Dict[str, Any] = {"response": response}
             data = response.get("data")
             session_id = data.get("sessionId") if isinstance(data, dict) else None
+            _LOGGER.debug("Zeekr %s: accepted, session %s", tag, session_id)
             if wait_result and session_id:
-                outcome["result"] = await _async_wait_result(
-                    hass, runtime, vin, str(session_id)
+                try:
+                    outcome["result"] = await _async_wait_result(
+                        hass, runtime, vin, str(session_id)
+                    )
+                except HomeAssistantError as err:
+                    _LOGGER.debug("Zeekr %s: no success verdict: %s", tag, err)
+                    raise
+                _LOGGER.debug(
+                    "Zeekr %s: executed after %s s",
+                    tag,
+                    outcome["result"]["after_s"],
                 )
     finally:
         # Outside the lock, so the next queued command does not wait for it.
         if sent:
             try:
                 await runtime.coordinator.async_refresh_vehicle(vin)
-            except ZeekrApiError:
-                pass
+                _LOGGER.debug("Zeekr %s: status refreshed after the command", tag)
+            except ZeekrApiError as err:
+                _LOGGER.debug("Zeekr %s: status refresh failed: %s", tag, err)
     return outcome
 
 

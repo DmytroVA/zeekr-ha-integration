@@ -96,7 +96,16 @@ every 2 seconds by the `sessionId` the cloud returned, for up to 45 seconds. The
 car normally answers within 2–7 seconds. Switches show the new state at once; if
 the car refuses or does not answer, the old state comes back and the action fails
 with the car's own reason. The status document itself is only refreshed by the
-car about once a minute, so it is used as the final reconciliation.
+car about once a minute, so it is used as the final reconciliation: after a
+confirmed command the new state is held until two separate status documents in a
+row report it (a single matching one can be followed by an older-looking one that
+rolls the field back), or until 180 seconds have passed, after which the car's
+report wins.
+
+To trace a command, enable debug logging for `custom_components.zeekr`: it logs
+when each command is queued, sent, executed and followed by a status refresh, and
+for every entity holding a commanded state the reported value in each update and
+why the hold was released.
 
 Commands to one car are queued: the next one is sent only after the car has
 answered the previous one (or the 45-second wait ran out), so a scene that
