@@ -7,7 +7,8 @@ import voluptuous as vol
 from homeassistant.components import websocket_api
 from homeassistant.components.http import StaticPathConfig
 from homeassistant.config_entries import ConfigEntry
-from homeassistant.core import HomeAssistant, SupportsResponse, callback
+from homeassistant.const import EVENT_HOMEASSISTANT_STOP
+from homeassistant.core import Event, HomeAssistant, SupportsResponse, callback
 from homeassistant.exceptions import HomeAssistantError, Unauthorized
 from homeassistant.helpers import config_validation as cv
 from homeassistant.helpers import entity_registry as er
@@ -91,6 +92,14 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     api = ZeekrApi(async_get_clientsession(hass), entry.data, persist_tokens)
     coordinator = VehicleStatusCoordinator(hass, api)
     await coordinator.observer.async_load()
+
+    async def flush_observations(_event: Event) -> None:
+        """Keep the in-memory change counters across a Home Assistant restart."""
+        await coordinator.observer.async_flush()
+
+    entry.async_on_unload(
+        hass.bus.async_listen_once(EVENT_HOMEASSISTANT_STOP, flush_observations)
+    )
     await coordinator.async_config_entry_first_refresh()
     runtime = ZeekrRuntimeData(api=api, coordinator=coordinator)
     entry.runtime_data = runtime
@@ -103,6 +112,7 @@ async def async_unload_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     """Unload platforms and remove the runtime from the integration registry."""
     unloaded = await hass.config_entries.async_unload_platforms(entry, PLATFORMS)
     if unloaded:
+        await entry.runtime_data.coordinator.observer.async_flush()
         hass.data[DOMAIN].pop(entry.entry_id, None)
     return unloaded
 

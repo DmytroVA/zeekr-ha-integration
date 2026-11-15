@@ -50,6 +50,9 @@ class FieldObserver:
             hass, _OBSERVATION_STORE_VERSION, f"{DOMAIN}.field_observations"
         )
         self.data: Dict[str, Dict[str, Dict[str, Any]]] = {}
+        # Change counters move on almost every poll (timestamps). They are kept in
+        # memory and written with the next structural save or on shutdown/unload.
+        self._unsaved = False
 
     async def async_load(self) -> None:
         """Load the summaries collected before the last restart."""
@@ -61,8 +64,19 @@ class FieldObserver:
         """Delete the stored summaries when the integration is removed."""
         await self._store.async_remove()
 
+    async def async_flush(self) -> None:
+        """Write change counters that were only updated in memory."""
+        if self._unsaved:
+            self._unsaved = False
+            await self._store.async_save(self.data)
+
     def observe(self, vin: str, status: Dict[str, Any]) -> None:
-        """Fold one status document into the per-field summary for a vehicle."""
+        """Fold one status document into the per-field summary for a vehicle.
+
+        Only a new field or a new sample value schedules a disk write; a value
+        changing between known samples (timestamps on every poll) only moves the
+        counter in memory.
+        """
         fields = self.data.setdefault(vin, {})
         dirty = False
         for path, value in _flatten(status):
@@ -83,8 +97,12 @@ class FieldObserver:
                     and len(record["samples"]) < _OBSERVATION_MAX_SAMPLES
                 ):
                     record["samples"].append(text)
-                dirty = True
+                    dirty = True
+                else:
+                    self._unsaved = True
         if dirty:
+            # The delayed write serialises self.data at write time, counters included.
+            self._unsaved = False
             self._store.async_delay_save(lambda: self.data, _OBSERVATION_SAVE_DELAY)
 
     def summary(self, vin: str) -> Dict[str, Dict[str, Any]]:
