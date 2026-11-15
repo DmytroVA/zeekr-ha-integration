@@ -126,6 +126,10 @@ vehicle generation.
 
 "Confirmed" means verified on a Zeekr 001; other models may differ.
 
+The full catalogue of the app's command identifiers — what each one does, which are
+implemented, planned, or deliberately left out and why — is in
+[docs/COMMANDS.uk.md](docs/COMMANDS.uk.md) (Ukrainian).
+
 For anything not wired to an entity, use the **`zeekr.remote_control`** service:
 
 ```yaml
