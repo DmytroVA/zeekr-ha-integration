@@ -106,7 +106,7 @@ vehicle generation.
 | Rapid cool / warm | `ZAF` | **confirmed** | AC at 15.5 °C / 28.5 °C |
 | Defrost | `ZAF` | **confirmed** | `DF`, `DF.level`, `DF.duration`; state `defrost` |
 | Cabin ventilation | `RCC` | **confirmed** | `rcc.conditioner`, `rcc.ventilation`, duration×6; state `airBlowerActive` |
-| Seat heating | `ZAF` | **confirmed** | `SH.11` driver, `SH.19` passenger, `SH.21`/`SH.29` rear + `.level`, `.duration` |
+| Seat heating | `ZAF` | **confirmed** (driver) | `SH.11` driver, `SH.19` passenger, `SH.21`/`SH.29` rear + `.level`, `.duration` |
 | Seat ventilation | `ZAF` | **confirmed** (driver) | `SV.11` … same scheme |
 | Steering-wheel heat | `ZAF` | **confirmed** | `SW`, `SW.level`, `SW.duration`; state `steerWhlHeatingSts` 1 = on |
 | Door unlock / lock | `RDU` / `RDL` | experimental | `target` param (`all`, `front-left`, …); unlock needs the vehicle PIN |
