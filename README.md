@@ -3,8 +3,8 @@
 Unofficial Home Assistant integration for **China-market Zeekr vehicles** that use
 the `zeekrlife.com` app cloud (phone number + SMS login, `+86`). It supersedes the
 `Admingyu/zeekr-homeassistant` integration: same `zeekr` domain and same entity
-unique IDs for the original entities, **plus** exhaustive read coverage of every
-field the cloud exposes, GPS-jamming (REB) detection, a last-cloud-update freshness
+unique IDs for the original entities, **plus** read access to every field of the
+official app's status model, GPS-jamming (REB) detection, a last-cloud-update freshness
 sensor, HACS packaging, and an advanced remote-control service.
 
 > Unofficial project, not affiliated with Zeekr/Geely. It uses the same private
@@ -64,6 +64,17 @@ cloud reject further uploads, freezing the data. This integration:
 (every remaining field of the app's status model) are created **disabled** under
 the **Diagnostic** category: most of them are empty or never change on a given
 car. Enable the ones you need from the device page.
+
+Raw sensors are named `Raw <field>` (for example *Raw Voltage*), so their entity IDs
+look like `sensor.<device>_raw_voltage`. Installations set up before 1.7.7 keep the
+entity IDs they already have (without `raw_`, and with `_2` where two sensors shared
+a name, e.g. `…_distance_to_empty_2`, `…_voltage_2`); only the displayed name changes.
+
+The raw registry comes from the app's status model, and the cloud sends a few fields
+that model does not list, so they have no raw sensor: for example
+`temStatus.powerMode`, `winStatus*`, `doorPos*`, `disChargeUAct`/`disChargeIAct`,
+`washerFluidLevelStatus`, `runningStatus.trunIndrLe`/`trunIndrRi`,
+`position.altitude`. They still appear in the diagnostics below.
 
 To see which fields your car really fills, use **Download diagnostics** on the
 integration: `field_observations` lists every field the cloud returned, grouped

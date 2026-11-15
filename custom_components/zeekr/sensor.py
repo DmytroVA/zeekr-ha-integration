@@ -423,7 +423,7 @@ class ZeekrLastUpdateSensor(ZeekrVehicleEntity, SensorEntity):
 class ZeekrRawSensor(ZeekrVehicleEntity, SensorEntity):
     """Diagnostic passthrough for any status field without a dedicated sensor.
 
-    Exhaustive coverage: every field the Zeekr app's status model defines is
+    Every field the Zeekr app's status model defines is
     surfaced here (as a raw string, under the Diagnostic category) so no datum the
     cloud returns is hidden, even codes and nested JSON whose meaning is unknown.
 
@@ -438,8 +438,10 @@ class ZeekrRawSensor(ZeekrVehicleEntity, SensorEntity):
     def __init__(self, coordinator: Any, vin: str, key: str, path: str, name: str) -> None:
         """Bind a raw diagnostic sensor to one status field of one vehicle."""
         super().__init__(coordinator, vin)
+        # "Raw " keeps these apart from typed sensors with the same field name
+        # (Distance To Empty, Voltage …), which otherwise get "_2" entity IDs.
         self.entity_description = SensorEntityDescription(
-            key=key, name=name, entity_category=EntityCategory.DIAGNOSTIC
+            key=key, name=f"Raw {name}", entity_category=EntityCategory.DIAGNOSTIC
         )
         self._path = path
         self._attr_unique_id = f"{vin}_raw_{key}"
