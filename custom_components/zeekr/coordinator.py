@@ -1,5 +1,6 @@
 """Shared account runtime and coordinated vehicle status updates."""
 
+import asyncio
 from dataclasses import dataclass, field
 import json
 import logging
@@ -193,6 +194,12 @@ class ZeekrRuntimeData:
     coordinator: VehicleStatusCoordinator
     # Per-VIN local climate convenience settings, not reported by the vehicle.
     climate_settings: Dict[str, Dict[str, Any]] = field(default_factory=dict)
+    # One command at a time per vehicle: held from sending until the verdict.
+    command_locks: Dict[str, asyncio.Lock] = field(default_factory=dict)
+
+    def command_lock(self, vin: str) -> asyncio.Lock:
+        """Return (creating if needed) the command queue lock for one vehicle."""
+        return self.command_locks.setdefault(vin, asyncio.Lock())
 
     def climate_setting(self, vin: str) -> Dict[str, Any]:
         """Return (creating if needed) the local climate settings for one vehicle."""

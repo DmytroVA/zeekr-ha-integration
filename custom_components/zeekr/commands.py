@@ -36,12 +36,56 @@ async def async_run_command(
 ) -> Dict[str, Any]:
     """Send a command, wait for the car's verdict, then refresh the status.
 
+    Commands to one vehicle are queued: a per-VIN lock is held from sending
+    until the verdict, so a scene firing several commands runs them in turn.
+
     Returns ``{"response": <cloud answer>, "result": {...}}``. Raises
     ``HomeAssistantError`` when the cloud rejects the command, the car reports
     that it failed, or no verdict arrives in time.
     """
+    sent = False
     try:
-        response = await runtime.api.async_remote_control(
+        async with runtime.command_lock(vin):
+            response = await _async_send(
+                hass,
+                runtime,
+                vin,
+                service_id=service_id,
+                command=command,
+                parameters=parameters,
+                duration=duration,
+            )
+            sent = True
+            outcome: Dict[str, Any] = {"response": response}
+            data = response.get("data")
+            session_id = data.get("sessionId") if isinstance(data, dict) else None
+            if wait_result and session_id:
+                outcome["result"] = await _async_wait_result(
+                    hass, runtime, vin, str(session_id)
+                )
+    finally:
+        # Outside the lock, so the next queued command does not wait for it.
+        if sent:
+            try:
+                await runtime.coordinator.async_refresh_vehicle(vin)
+            except ZeekrApiError:
+                pass
+    return outcome
+
+
+async def _async_send(
+    hass: HomeAssistant,
+    runtime: ZeekrRuntimeData,
+    vin: str,
+    *,
+    service_id: str,
+    command: Optional[str],
+    parameters: Optional[List[Dict[str, Any]]],
+    duration: Optional[int],
+) -> Dict[str, Any]:
+    """Send one command to the cloud, translating its errors for the caller."""
+    try:
+        return await runtime.api.async_remote_control(
             vin,
             service_id=service_id,
             command=command,
@@ -53,21 +97,6 @@ async def async_run_command(
         raise HomeAssistantError("Zeekr credentials expired") from err
     except ZeekrApiError as err:
         raise HomeAssistantError(f"Zeekr rejected the command: {err}") from err
-
-    outcome: Dict[str, Any] = {"response": response}
-    data = response.get("data")
-    session_id = data.get("sessionId") if isinstance(data, dict) else None
-    try:
-        if wait_result and session_id:
-            outcome["result"] = await _async_wait_result(
-                hass, runtime, vin, str(session_id)
-            )
-    finally:
-        try:
-            await runtime.coordinator.async_refresh_vehicle(vin)
-        except ZeekrApiError:
-            pass
-    return outcome
 
 
 async def _async_wait_result(

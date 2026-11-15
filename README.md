@@ -98,6 +98,11 @@ the car refuses or does not answer, the old state comes back and the action fail
 with the car's own reason. The status document itself is only refreshed by the
 car about once a minute, so it is used as the final reconciliation.
 
+Commands to one car are queued: the next one is sent only after the car has
+answered the previous one (or the 45-second wait ran out), so a scene that
+switches on climate, seat and steering-wheel heating at once runs them in turn
+instead of sending them in parallel.
+
 The command envelope (`{serviceId, command, setting:{serviceParameters, operationScheduling}}`)
 is the one the official app sends. Individual `serviceId` acceptance depends on the
 vehicle generation.
