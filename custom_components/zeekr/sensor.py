@@ -178,8 +178,6 @@ SENSOR_FIELDS: List[ZeekrSensorSpec] = [
             name="Average Power Consumption",
             native_unit_of_measurement="kWh/100 km",
             state_class=SensorStateClass.MEASUREMENT,
-            # The cloud reports 0 most of the time, also while the car is parked.
-            entity_registry_enabled_default=False,
         ),
         "additionalVehicleStatus.electricVehicleStatus.averPowerConsumption",
     ),
