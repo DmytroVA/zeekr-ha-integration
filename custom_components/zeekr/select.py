@@ -1,11 +1,12 @@
 """Seat heating / ventilation level selectors and the window control."""
 
 from dataclasses import dataclass
+import time
 from typing import List, Optional
 
 from homeassistant.components.select import SelectEntity
 from homeassistant.config_entries import ConfigEntry
-from homeassistant.core import HomeAssistant
+from homeassistant.core import HomeAssistant, callback
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 
 from .command_entity import ZeekrCommandEntity
@@ -116,6 +117,10 @@ class ZeekrWindowSelect(ZeekrCommandEntity, SelectEntity):
 
     _attr_name = "Windows"
     _attr_icon = "mdi:car-door"
+    # The car does not report the vent gap in its window positions (they stay 0),
+    # so after a confirmed "vent" command that state is held until another
+    # option is chosen or the car reports the windows as opened further.
+    _VENT_HOLD = 12 * 3600
     _attr_options = WINDOW_OPTIONS
     _attr_translation_key = "windows"
 
@@ -135,6 +140,18 @@ class ZeekrWindowSelect(ZeekrCommandEntity, SelectEntity):
         """Return the commanded state while it is pending, else the reported one."""
         return self._current_value()
 
+    @callback
+    def _handle_coordinator_update(self) -> None:
+        """Keep a confirmed vent state while the car still reports "closed"."""
+        if (
+            self._pending == "vent"
+            and self._reported_value() == "closed"
+            and time.monotonic() < self._pending_until
+        ):
+            self.async_write_ha_state()
+            return
+        super()._handle_coordinator_update()
+
     async def async_select_option(self, option: str) -> None:
         """Close the windows, open the vent gap or open them fully."""
         command, target = _WINDOW_COMMANDS[option]
@@ -144,6 +161,8 @@ class ZeekrWindowSelect(ZeekrCommandEntity, SelectEntity):
             command=command,
             parameters=[{"key": "target", "value": target}],
         )
+        if option == "vent" and self._pending == "vent":
+            self._pending_until = time.monotonic() + self._VENT_HOLD
 
 
 async def async_setup_entry(
