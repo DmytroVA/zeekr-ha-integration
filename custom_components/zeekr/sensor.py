@@ -445,7 +445,7 @@ class ZeekrRawSensor(ZeekrVehicleEntity, SensorEntity):
     @property
     def native_value(self) -> Any:
         """Return the raw field value as a short string, or None when absent."""
-        value = value_at(self.vehicle_data, self._path)
+        value = status_value(self.vehicle_data, self._path)
         if value is None:
             return None
         if isinstance(value, (dict, list)):

@@ -80,9 +80,10 @@ class ZeekrAcDurationNumber(_ZeekrClimateNumber):
 
     _attr_name = "AC Duration"
     _attr_native_unit_of_measurement = UnitOfTime.MINUTES
-    _attr_native_min_value = 1
+    # The app offers run times in 5-minute steps.
+    _attr_native_min_value = 5
     _attr_native_max_value = 30
-    _attr_native_step = 1
+    _attr_native_step = 5
     _setting_key = "duration"
     _default = float(DEFAULT_AC_DURATION_MIN)
 
