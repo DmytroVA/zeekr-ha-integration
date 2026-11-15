@@ -85,20 +85,33 @@
 - Готово: таблиця в цьому записі, рішення щодо кожного типізованого сенсора, що в русі
   не оновлювався.
 
-### [ ] T4 🟢 FieldObserver пише на диск кожні 5 хв
+### [x] T4 🟢 FieldObserver пише на диск кожні 5 хв
 - Проблема: `coordinator.py`, `FieldObserver.observe` — зміна `updateTime`,
   `pupdateTime`, `temperatureUpdateTime` щоразу ставить `dirty`.
 - Зробити: `dirty = True` лише коли з'явилося нове поле або новий зразок у `samples`.
   Лічильник `changes` оновлювати в пам'яті (збережеться разом із наступним записом і при
   зупинці HA).
+- Результат (1.7.7): `FieldObserver.observe` планує запис лише на нове поле або новий зразок;
+  зміна між уже відомими зразками рухає лічильник у пам'яті (`_unsaved`). `async_flush`
+  записує такі лічильники на `EVENT_HOMEASSISTANT_STOP` (через `async_save`, що під час
+  зупинки HA пише на фінальному етапі) і при вивантаженні запису. Відкладений запис і так
+  серіалізує `self.data` у момент запису, тож лічильники їдуть разом. Ізольований тест:
+  60 опитувань, де змінюються лише мітки часу, дають 0 записів; `async_flush` пише один раз
+  і далі нічого. Живий HA: 1.7.7/1.7.8 завантажились без помилок, лічильник `updateTime`
+  після перезапуску той самий (231). Але авто спало (`updateTime` не мінявся), тож
+  збереження лічильників при зупинці під навантаженням на живому HA не перевірено.
 
-### [ ] T5 🟢 Мінімальна версія HA
+### [x] T5 🟢 Мінімальна версія HA
 - `hacs.json` заявляє `2024.8.0`. `config_flow.py` використовує `_get_reauth_entry`,
   `_abort_if_unique_id_mismatch`, `async_update_reload_and_abort(data_updates=)`.
 - Зробити: з'ясувати за документацією HA, у якій версії з'явилися ці методи
   (ймовірно 2024.11), і виставити її в `hacs.json`.
+- Результат: за вихідним кодом `homeassistant/config_entries.py` на тегах 2024.8.0–2024.12.0
+  всі три (`_get_reauth_entry`, `_abort_if_unique_id_mismatch`, `data_updates=`) з'являються
+  в **2024.11.0**, у 2024.10.0 їх ще немає. `hacs.json` → `2024.11.0`. Решта використаних API
+  (`StaticPathConfig`, `runtime_data`, `RestoreNumber`, `SupportsResponse`) старші.
 
-### [ ] T6 🟢 Документація розходиться з реальністю
+### [x] T6 🟢 Документація розходиться з реальністю
 - `ENTITIES.uk.md` обіцяє `sensor.zeekr_zeekr_001_raw_<ключ>`. Фактично `raw_` є лише в
   `unique_id`; entity_id будується з назви, з колізіями: `..._voltage_2`,
   `..._distance_to_empty_2`.
@@ -108,6 +121,15 @@
   `runningStatus.trunIndrLe/Ri`, `position.altitude`).
 - Зробити: виправити обидва тексти. Колізії назв: дати raw-сенсорам назви з префіксом
   `Raw ` (unique_id не чіпати; наявні entity_id в реєстрі не зміняться).
+- Результат (1.7.7, 1.7.8): raw-сенсори звуться `Raw <поле>`. Крім колізії з типізованими,
+  знайшлися однакові назви всередині самого `fields.py`: два `Voltage` (`maintenanceStatus`,
+  `bigdataVehicleStatus`) і два `Distance To Empty On Battery Only` (`electricVehicleStatus`,
+  `bigdataVehicleStatus`). Вони тепер *Maintenance* / *Bigdata …* (1.7.8). README і
+  `ENTITIES.uk.md`: реальний вигляд entity_id (`…_raw_<назва>` на нових встановленнях,
+  старі id без змін, ключі `raw_…` — це `unique_id`), прибрано «every field the cloud
+  exposes» / «покрито все», перелічено поля хмари, яких немає в реєстрі. Живий HA: 169
+  raw-сенсорів із префіксом `Raw`, жодної однакової назви серед сенсорів, entity_id не
+  змінилися (`…_voltage_2` тепер *Raw Bigdata Voltage*), логи чисті.
 
 ### [ ] T7 🟡 Переклади назв сутностей і сервісів
 - Проблема: у `strings.json`/`en.json`/`uk.json`/`zh-Hans.json` є лише стани 4 сутностей.
