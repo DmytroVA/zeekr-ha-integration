@@ -53,18 +53,12 @@
           "medium": "中",
           "high": "高"
         }
-      }
-    },
-    "climate": {
-      "cabin": {
-        "state_attributes": {
-          "preset_mode": {
-            "state": {
-              "none": "普通",
-              "rapid_warm": "极速升温",
-              "rapid_cool": "极速降温"
-            }
-          }
+      },
+      "windows": {
+        "state": {
+          "closed": "关闭",
+          "vent": "微开",
+          "open": "全开"
         }
       }
     }

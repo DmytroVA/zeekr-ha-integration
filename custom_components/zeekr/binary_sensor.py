@@ -92,6 +92,14 @@ BINARY_SENSOR_FIELDS: List[Tuple[BinarySensorEntityDescription, str]] = [
         ),
         "additionalVehicleStatus.drivingSafetyStatus.engineHoodOpenStatus",
     ),
+    (
+        BinarySensorEntityDescription(
+            key="trunk_lock",
+            name="Trunk Lock",
+            device_class=BinarySensorDeviceClass.LOCK,
+        ),
+        "additionalVehicleStatus.drivingSafetyStatus.trunkLockStatus",
+    ),
     # ---- Fields only the v2.0 status document carries ----
     (
         BinarySensorEntityDescription(
@@ -143,7 +151,11 @@ class ZeekrBinarySensor(ZeekrVehicleEntity, BinarySensorEntity):
     @property
     def is_on(self) -> bool:
         """Return the parsed provider flag; availability tracks missing values."""
-        return boolean_value(status_value(self.vehicle_data, self._path)) is True
+        value = boolean_value(status_value(self.vehicle_data, self._path)) is True
+        # The car reports locks as 1 = locked; Home Assistant's lock class is on = unlocked.
+        if self.entity_description.device_class == BinarySensorDeviceClass.LOCK:
+            return not value
+        return value
 
     @property
     def available(self) -> bool:

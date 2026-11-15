@@ -67,7 +67,7 @@ async def async_migrate_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
                     disabled_by=er.RegistryEntryDisabler.INTEGRATION,
                 )
         hass.config_entries.async_update_entry(entry, minor_version=2)
-    if entry.version == 1 and entry.minor_version < 4:
+    if entry.version == 1 and entry.minor_version < 5:
         # 1.5/1.6: start/stop and rapid buttons were replaced by switches and the
         # climate entity.
         registry = er.async_get(hass)
@@ -77,7 +77,7 @@ async def async_migrate_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
                 f"cmd_{removed}" for removed in REMOVED_BUTTON_KEYS
             }:
                 registry.async_remove(entity.entity_id)
-        hass.config_entries.async_update_entry(entry, minor_version=4)
+        hass.config_entries.async_update_entry(entry, minor_version=5)
     return True
 
 

@@ -53,18 +53,12 @@
           "medium": "Medium",
           "high": "High"
         }
-      }
-    },
-    "climate": {
-      "cabin": {
-        "state_attributes": {
-          "preset_mode": {
-            "state": {
-              "none": "Normal",
-              "rapid_warm": "Rapid warming",
-              "rapid_cool": "Rapid cooling"
-            }
-          }
+      },
+      "windows": {
+        "state": {
+          "closed": "Closed",
+          "vent": "Vent",
+          "open": "Open"
         }
       }
     }

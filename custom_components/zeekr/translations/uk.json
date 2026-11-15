@@ -53,18 +53,12 @@
           "medium": "Середній",
           "high": "Сильний"
         }
-      }
-    },
-    "climate": {
-      "cabin": {
-        "state_attributes": {
-          "preset_mode": {
-            "state": {
-              "none": "Звичайний",
-              "rapid_warm": "Швидкий обігрів",
-              "rapid_cool": "Швидке охолодження"
-            }
-          }
+      },
+      "windows": {
+        "state": {
+          "closed": "Закрито",
+          "vent": "Провітрювання",
+          "open": "Відкрито"
         }
       }
     }

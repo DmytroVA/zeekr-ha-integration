@@ -10,6 +10,7 @@ PLATFORMS = [
     "device_tracker",
     "button",
     "climate",
+    "lock",
     "switch",
     "select",
     "number",

@@ -69,7 +69,7 @@ class ZeekrSentrySwitch(ZeekrCommandSwitch):
 class ZeekrAcSwitch(ZeekrCommandSwitch):
     """On/off shortcut for the cabin climate (same state as the climate entity).
 
-    Target temperature, run time and preset come from the shared local settings.
+    Target temperature and run time come from the shared local settings.
     """
 
     _attr_name = "Air Conditioning"
@@ -84,7 +84,7 @@ class ZeekrAcSwitch(ZeekrCommandSwitch):
         return climate_is_on(self.vehicle_data)
 
     async def async_turn_on(self, **kwargs: Any) -> None:
-        """Start the climate with the configured temperature, run time and preset."""
+        """Start the climate with the configured temperature and run time."""
         await self._async_command(
             True,
             service_id="ZAF",

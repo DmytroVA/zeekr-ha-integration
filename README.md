@@ -77,10 +77,11 @@ into *changing* (with change count and sample values), *constant* and
 | `sensor` | 27 typed (battery, range, interior/exterior temp, tyre pressures/temps, odometer, distances/days to service, 12 V voltage, charge current/voltage, avg consumption, PM2.5, speed, time-to-full, trip meters, …), `last_cloud_update`, **+ ~169 raw diagnostic sensors (disabled by default) covering every remaining field in the app's status model** (BasicVo, ElectricVehicleStatusVo, ClimateStatusVo, DrivingSafetyStatusVo, AdditionalMaintenanceStatusVo, RunningStatusVo, PollutionStatusVo, DrivingBehaviourStatusVo, BigdataVehicleStatusVo, PositionVo, mainBatteryStatus). Nested/JSON fields (`storageBoxStatus`, `fragItems`, …) are shown as compact JSON. |
 | `binary_sensor` | charging, plugged-in, 4 doors, trunk, hood, HV-battery optimization, low/high beam, hazard lights, park comfort mode, **gps_spoofed** |
 | `device_tracker` | location (trusted-position holding) |
-| `climate` | **cabin climate**: on/off, target temperature, presets *normal* / *rapid warming* / *rapid cooling* |
+| `climate` | **cabin climate**: on/off, target temperature |
 | `switch` | **sentry mode**, **air conditioning** (on/off shortcut for the climate), **defrost**, **cabin ventilation**, **steering-wheel heating** |
-| `select` | **seat heating** and **seat ventilation** level (`off`, `low`, `medium`, `high`) for driver, passenger and both rear seats |
-| `button` | **refresh**; flash & horn and trunk open *(experimental, disabled by default)* |
+| `select` | **seat heating** and **seat ventilation** level (`off`, `low`, `medium`, `high`) for driver, passenger and both rear seats; **windows** (`closed`, `vent`, `open`) |
+| `lock` | **doors** (central lock; also locks the tailgate) |
+| `button` | **refresh**, **rapid warming**, **rapid cooling**, **unlock trunk**; **flash lights**, **flash lights & horn** *(not yet verified, disabled by default)* |
 | `number` | AC target temperature, run time in 5-minute steps (local settings shared by the climate controls) |
 
 Switches and selectors that depend on optional equipment are only created when the car reports the matching status field. Enable the experimental buttons from the device page if you want to try them.
@@ -104,16 +105,17 @@ vehicle generation.
 | Refresh status | — | **confirmed** | immediate poll |
 | Sentry mode | `RSM` | **confirmed** | state: `basic.vstdModeStatus` 1–4 |
 | Air conditioning | `ZAF` | **confirmed** | `AC`, `AC.temp`, `AC.duration`; state `preClimateActive` |
-| Rapid warming / cooling | `ZAF` | **confirmed** (warming) | `RW` / `RC` + `.duration`; the car reports them only as `preClimateActive`, so the preset shown is the one chosen in Home Assistant; `AC=false` stops them |
+| Rapid warming / cooling | `ZAF` | **confirmed** (warming) | `RW` / `RC` + `.duration`: the app's one-press presets; the car reports them as `preClimateActive`; `AC=false` stops them |
 | Defrost | `ZAF` | **confirmed** | `DF`, `DF.level`, `DF.duration`; state `defrost` |
 | Cabin ventilation | `RCC` | **confirmed** | `rcc.conditioner`, `rcc.ventilation`, duration×6; state `airBlowerActive` |
 | Seat heating | `ZAF` | **confirmed** (driver) | `SH.11` driver, `SH.19` passenger, `SH.21`/`SH.29` rear + `.level`, `.duration` |
 | Seat ventilation | `ZAF` | **confirmed** (driver) | `SV.11` … same scheme |
 | Steering-wheel heat | `ZAF` | **confirmed** | `SW`, `SW.level`, `SW.duration`; state `steerWhlHeatingSts` 1 = on |
-| Door unlock / lock | `RDU` / `RDL` | experimental | `target` param (`all`, `front-left`, …); unlock needs the vehicle PIN |
-| Trunk open / close | `RTU` / `RTL` | experimental | |
+| Door unlock / lock | `RDU` / `RDL` | **confirmed** | command `start`, `door=all`; state `centralLockingStatus` |
+| Trunk unlock | `RDU` | **confirmed** | command `start`, `target=trunk`; releases the latch only (the tailgate is then opened by its own button and relocks by itself if not opened). A separate tailgate lock (`RDL` + `target=trunk`) is refused by the car; locking the doors locks it. State `trunkLockStatus` |
+| Windows | `RWS` | **confirmed** (vent, close) | `start` + `target=window` (fully open), `start` + `target=ventilate` (vent gap), `stop` + `target=window` (close); state `winPos*` |
 | Hood | `RLU` / `RDU` | experimental | generation-dependent |
-| Flash & horn | `RHL` | experimental | |
+| Flash lights / flash & horn | `RHL` | not verified | `rhl=light-flash` / `rhl=horn-light-flash` (the app's two find-my-car modes) |
 
 "Confirmed" means verified on a Zeekr 001; other models may differ.
 

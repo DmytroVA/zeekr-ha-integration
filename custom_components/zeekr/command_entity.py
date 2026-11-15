@@ -11,16 +11,10 @@ from .const import COMMAND_OPTIMISTIC_HOLD
 from .coordinator import ZeekrRuntimeData
 from .entity import ZeekrVehicleEntity, boolean_value, value_at
 
-PRESET_NONE = "none"
-PRESET_RAPID_WARM = "rapid_warm"
-PRESET_RAPID_COOL = "rapid_cool"
-CLIMATE_PRESETS = (PRESET_NONE, PRESET_RAPID_WARM, PRESET_RAPID_COOL)
-
-
 def climate_is_on(data: Dict[str, Any]) -> bool:
     """True when the car reports cabin pre-conditioning as running.
 
-    The same flag covers normal air conditioning and the rapid presets.
+    The same flag covers normal air conditioning and rapid warming/cooling.
     """
     value = value_at(data, "v2.climateStatus.preClimateActive")
     if value is None:
@@ -29,26 +23,16 @@ def climate_is_on(data: Dict[str, Any]) -> bool:
 
 
 def climate_start_parameters(setting: Dict[str, Any]) -> List[Dict[str, Any]]:
-    """Build the ZAF parameters that start the climate with the chosen preset.
-
-    These are the app's own commands: ``AC`` with a target temperature, ``RW``
-    (rapid warming) and ``RC`` (rapid cooling), each with a run time in minutes.
-    """
-    duration = int(setting.get("duration", 15))
-    preset = setting.get("preset", PRESET_NONE)
-    if preset == PRESET_RAPID_WARM:
-        return [{"key": "RW", "value": True}, {"key": "RW.duration", "value": duration}]
-    if preset == PRESET_RAPID_COOL:
-        return [{"key": "RC", "value": True}, {"key": "RC.duration", "value": duration}]
+    """Build the ZAF parameters that start air conditioning at the set temperature."""
     return [
         {"key": "AC", "value": True},
         {"key": "AC.temp", "value": str(setting.get("temp", 22.0))},
-        {"key": "AC.duration", "value": duration},
+        {"key": "AC.duration", "value": int(setting.get("duration", 15))},
     ]
 
 
 def climate_stop_parameters() -> List[Dict[str, Any]]:
-    """Build the ZAF parameters that stop the climate, whichever preset runs."""
+    """Build the ZAF parameters that stop the climate (also stops rapid warming/cooling)."""
     return [{"key": "AC", "value": False}]
 
 

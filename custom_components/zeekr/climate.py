@@ -1,4 +1,4 @@
-"""Cabin climate as one thermostat: on/off, target temperature and rapid presets."""
+"""Cabin climate as a thermostat: on/off and target temperature."""
 
 from typing import Any, List, Optional
 
@@ -11,11 +11,8 @@ from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import ATTR_TEMPERATURE, UnitOfTemperature
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
-from homeassistant.helpers.restore_state import RestoreEntity
 
 from .command_entity import (
-    CLIMATE_PRESETS,
-    PRESET_NONE,
     ZeekrCommandEntity,
     climate_is_on,
     climate_start_parameters,
@@ -25,26 +22,26 @@ from .const import MAX_AC_TEMP, MIN_AC_TEMP
 from .coordinator import ZeekrRuntimeData
 from .entity import numeric_value, status_value
 
+# Home Assistant 2026.11 renamed the climate temperature properties to native_*
+# (the old names stop working in 2027.11). Older cores only know the old names,
+# so the entity defines whichever set the running core expects.
+_NATIVE_TEMPERATURE = hasattr(ClimateEntity, "native_temperature_unit")
 
-class ZeekrClimate(ZeekrCommandEntity, ClimateEntity, RestoreEntity):
-    """Remote pre-conditioning of the cabin.
 
-    The car only reports whether pre-conditioning runs, not which variant, so the
-    preset (normal / rapid warming / rapid cooling) is the one chosen here and is
-    applied the next time the climate is switched on, or at once if it is running.
+class ZeekrClimate(ZeekrCommandEntity, ClimateEntity):
+    """Remote pre-conditioning of the cabin at a target temperature.
+
+    Rapid warming and rapid cooling are separate one-press buttons; the car
+    reports all three simply as "pre-conditioning is running".
     """
 
     _attr_name = "Climate"
-    _attr_translation_key = "cabin"
-    _attr_temperature_unit = UnitOfTemperature.CELSIUS
     _attr_hvac_modes = [HVACMode.OFF, HVACMode.HEAT_COOL]
-    _attr_preset_modes = list(CLIMATE_PRESETS)
     _attr_min_temp = MIN_AC_TEMP
     _attr_max_temp = MAX_AC_TEMP
     _attr_target_temperature_step = 0.5
     _attr_supported_features = (
         ClimateEntityFeature.TARGET_TEMPERATURE
-        | ClimateEntityFeature.PRESET_MODE
         | ClimateEntityFeature.TURN_ON
         | ClimateEntityFeature.TURN_OFF
     )
@@ -57,47 +54,58 @@ class ZeekrClimate(ZeekrCommandEntity, ClimateEntity, RestoreEntity):
 
     @property
     def _setting(self) -> dict:
-        """Return this vehicle's local climate settings (temp, duration, preset)."""
+        """Return this vehicle's local climate settings (temperature, run time)."""
         return self._runtime.climate_setting(self.vin)
 
     def _reported_value(self) -> bool:
         """Reflect the vehicle's reported pre-conditioning state."""
         return climate_is_on(self.vehicle_data)
 
-    @property
-    def hvac_mode(self) -> HVACMode:
-        """Return whether pre-conditioning runs (or was just commanded to)."""
-        return HVACMode.HEAT_COOL if self._current_value() else HVACMode.OFF
-
-    @property
-    def current_temperature(self) -> Optional[float]:
-        """Return the cabin temperature."""
+    def _cabin_temperature(self) -> Optional[float]:
+        """Return the cabin temperature in degrees Celsius."""
         return numeric_value(
             status_value(
                 self.vehicle_data, "additionalVehicleStatus.climateStatus.interiorTemp"
             )
         )
 
-    @property
-    def target_temperature(self) -> float:
-        """Return the temperature used by the normal preset."""
+    def _target(self) -> float:
+        """Return the configured target temperature in degrees Celsius."""
         return float(self._setting.get("temp", 22.0))
 
-    @property
-    def preset_mode(self) -> str:
-        """Return the chosen preset."""
-        preset = self._setting.get("preset", PRESET_NONE)
-        return preset if preset in CLIMATE_PRESETS else PRESET_NONE
+    if _NATIVE_TEMPERATURE:
+        _attr_native_temperature_unit = UnitOfTemperature.CELSIUS
 
-    async def async_added_to_hass(self) -> None:
-        """Restore the chosen preset after a restart."""
-        await super().async_added_to_hass()
-        last = await self.async_get_last_state()
-        if last is not None and last.attributes.get("preset_mode") in CLIMATE_PRESETS:
-            self._setting["preset"] = last.attributes["preset_mode"]
+        @property
+        def native_current_temperature(self) -> Optional[float]:
+            """Return the cabin temperature."""
+            return self._cabin_temperature()
+
+        @property
+        def native_target_temperature(self) -> float:
+            """Return the target temperature."""
+            return self._target()
+
+    else:
+        _attr_temperature_unit = UnitOfTemperature.CELSIUS
+
+        @property
+        def current_temperature(self) -> Optional[float]:
+            """Return the cabin temperature."""
+            return self._cabin_temperature()
+
+        @property
+        def target_temperature(self) -> float:
+            """Return the target temperature."""
+            return self._target()
+
+    @property
+    def hvac_mode(self) -> HVACMode:
+        """Return whether pre-conditioning runs (or was just commanded to)."""
+        return HVACMode.HEAT_COOL if self._current_value() else HVACMode.OFF
 
     async def _async_start(self) -> None:
-        """Start (or restart with new settings) pre-conditioning."""
+        """Start (or restart with a new temperature) air conditioning."""
         await self._async_command(
             True,
             service_id="ZAF",
@@ -131,13 +139,6 @@ class ZeekrClimate(ZeekrCommandEntity, ClimateEntity, RestoreEntity):
         if temperature is None:
             return
         self._setting["temp"] = float(temperature)
-        self.async_write_ha_state()
-        if self._current_value() and self.preset_mode == PRESET_NONE:
-            await self._async_start()
-
-    async def async_set_preset_mode(self, preset_mode: str) -> None:
-        """Store the preset; apply it at once if the climate runs."""
-        self._setting["preset"] = preset_mode
         self.async_write_ha_state()
         if self._current_value():
             await self._async_start()

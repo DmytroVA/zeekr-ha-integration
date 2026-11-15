@@ -47,21 +47,69 @@ class ZeekrCommandSpec:
     experimental: bool = True
 
 
-def _flash_horn(_setting: Dict[str, Any]) -> Dict[str, Any]:
-    return {"service_id": "RHL", "command": "", "parameters": [{"key": "rhl", "value": "1"}]}
+def _rapid(key: str) -> Callable[[Dict[str, Any]], Dict[str, Any]]:
+    """Rapid warming (``RW``) / rapid cooling (``RC``): the app's own one-press
+    presets that pre-condition the cabin as fast as possible for the run time."""
+
+    def _build(setting: Dict[str, Any]) -> Dict[str, Any]:
+        return {
+            "service_id": "ZAF",
+            "command": "",
+            "parameters": [
+                {"key": key, "value": True},
+                {"key": f"{key}.duration", "value": int(setting.get("duration", 15))},
+            ],
+        }
+
+    return _build
 
 
-def _trunk_open(_setting: Dict[str, Any]) -> Dict[str, Any]:
-    return {"service_id": "RTU", "command": "start", "parameters": []}
+def _horn_light(kind: str) -> Callable[[Dict[str, Any]], Dict[str, Any]]:
+    """Find-my-car signal (``RHL``); ``kind`` is the app's ``rhl`` value.
+
+    The app offers two modes: ``light-flash`` (闪灯, lights only) and
+    ``horn-light-flash`` (闪灯鸣笛, lights and horn).
+    """
+
+    def _build(_setting: Dict[str, Any]) -> Dict[str, Any]:
+        return {
+            "service_id": "RHL",
+            "command": "",
+            "parameters": [{"key": "rhl", "value": kind}],
+        }
+
+    return _build
+
+
+def _trunk_unlock(_setting: Dict[str, Any]) -> Dict[str, Any]:
+    """Release the tailgate latch (``RDU`` + ``target=trunk``), as the app does.
+
+    The tailgate is not raised: it is then opened with its own button, and the
+    car locks it again by itself if nobody opens it. The car refuses a separate
+    tailgate lock; locking the doors locks the tailgate too.
+    """
+    return {
+        "service_id": "RDU",
+        "command": "start",
+        "parameters": [{"key": "target", "value": "trunk"}],
+    }
 
 
 COMMAND_BUTTONS: List[ZeekrCommandSpec] = [
-    ZeekrCommandSpec("flash_horn", "Flash & Horn (experimental)", _flash_horn),
-    ZeekrCommandSpec("trunk_open", "Trunk Open (experimental)", _trunk_open),
+    ZeekrCommandSpec("rapid_warm", "Rapid Warming", _rapid("RW"), False),
+    ZeekrCommandSpec("rapid_cool", "Rapid Cooling", _rapid("RC"), False),
+    ZeekrCommandSpec("trunk_unlock", "Unlock Trunk", _trunk_unlock, False),
+    # Signal: built from the app's code, not yet verified on a car, so these are
+    # disabled by default.
+    ZeekrCommandSpec("flash_lights", "Flash Lights", _horn_light("light-flash")),
+    ZeekrCommandSpec(
+        "flash_lights_horn", "Flash Lights & Horn", _horn_light("horn-light-flash")
+    ),
 ]
 
-# Buttons of earlier versions that switches and the climate entity replaced; their registry entries are
-# removed by the config-entry migration.
+# Buttons of earlier versions that were replaced or whose command was wrong;
+# their registry entries are removed by the config-entry migration (current
+# buttons with the same key are then registered afresh).
 REMOVED_BUTTON_KEYS = (
     "ac_start",
     "ac_stop",
@@ -71,6 +119,8 @@ REMOVED_BUTTON_KEYS = (
     "cabin_vent_stop",
     "rapid_cool",
     "rapid_warm",
+    "flash_horn",
+    "trunk_open",
 )
 
 
