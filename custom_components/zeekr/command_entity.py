@@ -9,7 +9,47 @@ from homeassistant.exceptions import HomeAssistantError
 from .commands import async_run_command
 from .const import COMMAND_OPTIMISTIC_HOLD
 from .coordinator import ZeekrRuntimeData
-from .entity import ZeekrVehicleEntity
+from .entity import ZeekrVehicleEntity, boolean_value, value_at
+
+PRESET_NONE = "none"
+PRESET_RAPID_WARM = "rapid_warm"
+PRESET_RAPID_COOL = "rapid_cool"
+CLIMATE_PRESETS = (PRESET_NONE, PRESET_RAPID_WARM, PRESET_RAPID_COOL)
+
+
+def climate_is_on(data: Dict[str, Any]) -> bool:
+    """True when the car reports cabin pre-conditioning as running.
+
+    The same flag covers normal air conditioning and the rapid presets.
+    """
+    value = value_at(data, "v2.climateStatus.preClimateActive")
+    if value is None:
+        value = value_at(data, "additionalVehicleStatus.climateStatus.preClimateActive")
+    return boolean_value(value) is True
+
+
+def climate_start_parameters(setting: Dict[str, Any]) -> List[Dict[str, Any]]:
+    """Build the ZAF parameters that start the climate with the chosen preset.
+
+    These are the app's own commands: ``AC`` with a target temperature, ``RW``
+    (rapid warming) and ``RC`` (rapid cooling), each with a run time in minutes.
+    """
+    duration = int(setting.get("duration", 15))
+    preset = setting.get("preset", PRESET_NONE)
+    if preset == PRESET_RAPID_WARM:
+        return [{"key": "RW", "value": True}, {"key": "RW.duration", "value": duration}]
+    if preset == PRESET_RAPID_COOL:
+        return [{"key": "RC", "value": True}, {"key": "RC.duration", "value": duration}]
+    return [
+        {"key": "AC", "value": True},
+        {"key": "AC.temp", "value": str(setting.get("temp", 22.0))},
+        {"key": "AC.duration", "value": duration},
+    ]
+
+
+def climate_stop_parameters() -> List[Dict[str, Any]]:
+    """Build the ZAF parameters that stop the climate, whichever preset runs."""
+    return [{"key": "AC", "value": False}]
 
 
 class ZeekrCommandEntity(ZeekrVehicleEntity):

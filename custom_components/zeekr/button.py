@@ -11,7 +11,6 @@ from homeassistant.helpers.entity_platform import AddEntitiesCallback
 
 from .api import ZeekrApiError, ZeekrAuthError
 from .commands import async_run_command
-from .const import RAPID_COOL_TEMP, RAPID_WARM_TEMP
 from .coordinator import ZeekrRuntimeData, start_reauth
 from .entity import ZeekrVehicleEntity
 
@@ -48,22 +47,6 @@ class ZeekrCommandSpec:
     experimental: bool = True
 
 
-def _rapid(temp: float) -> Callable[[Dict[str, Any]], Dict[str, Any]]:
-    def _build(setting: Dict[str, Any]) -> Dict[str, Any]:
-        duration = int(setting.get("duration", 15))
-        return {
-            "service_id": "ZAF",
-            "command": "",
-            "parameters": [
-                {"key": "AC", "value": True},
-                {"key": "AC.temp", "value": str(temp)},
-                {"key": "AC.duration", "value": duration},
-            ],
-        }
-
-    return _build
-
-
 def _flash_horn(_setting: Dict[str, Any]) -> Dict[str, Any]:
     return {"service_id": "RHL", "command": "", "parameters": [{"key": "rhl", "value": "1"}]}
 
@@ -73,13 +56,11 @@ def _trunk_open(_setting: Dict[str, Any]) -> Dict[str, Any]:
 
 
 COMMAND_BUTTONS: List[ZeekrCommandSpec] = [
-    ZeekrCommandSpec("rapid_cool", "Rapid Cool", _rapid(RAPID_COOL_TEMP), False),
-    ZeekrCommandSpec("rapid_warm", "Rapid Warm", _rapid(RAPID_WARM_TEMP), False),
     ZeekrCommandSpec("flash_horn", "Flash & Horn (experimental)", _flash_horn),
     ZeekrCommandSpec("trunk_open", "Trunk Open (experimental)", _trunk_open),
 ]
 
-# Buttons of earlier versions that switches replaced; their registry entries are
+# Buttons of earlier versions that switches and the climate entity replaced; their registry entries are
 # removed by the config-entry migration.
 REMOVED_BUTTON_KEYS = (
     "ac_start",
@@ -88,6 +69,8 @@ REMOVED_BUTTON_KEYS = (
     "defrost_stop",
     "cabin_vent_start",
     "cabin_vent_stop",
+    "rapid_cool",
+    "rapid_warm",
 )
 
 

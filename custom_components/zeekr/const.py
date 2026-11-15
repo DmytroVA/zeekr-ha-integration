@@ -9,6 +9,7 @@ PLATFORMS = [
     "binary_sensor",
     "device_tracker",
     "button",
+    "climate",
     "switch",
     "select",
     "number",
@@ -49,5 +50,3 @@ DEFAULT_AC_TEMP = 22.0
 DEFAULT_AC_DURATION_MIN = 15
 MIN_AC_TEMP = 16.0
 MAX_AC_TEMP = 30.0
-RAPID_COOL_TEMP = 15.5
-RAPID_WARM_TEMP = 28.5

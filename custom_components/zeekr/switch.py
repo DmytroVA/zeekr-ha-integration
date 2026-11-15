@@ -7,7 +7,12 @@ from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 
-from .command_entity import ZeekrCommandEntity
+from .command_entity import (
+    ZeekrCommandEntity,
+    climate_is_on,
+    climate_start_parameters,
+    climate_stop_parameters,
+)
 from .coordinator import ZeekrRuntimeData
 from .entity import boolean_value, has_v2, value_at
 
@@ -62,9 +67,9 @@ class ZeekrSentrySwitch(ZeekrCommandSwitch):
 
 
 class ZeekrAcSwitch(ZeekrCommandSwitch):
-    """Remote air conditioning (pre-conditioning) using the ZAF climate command.
+    """On/off shortcut for the cabin climate (same state as the climate entity).
 
-    Target temperature and run time come from the two local number entities.
+    Target temperature, run time and preset come from the shared local settings.
     """
 
     _attr_name = "Air Conditioning"
@@ -76,35 +81,26 @@ class ZeekrAcSwitch(ZeekrCommandSwitch):
 
     def _reported_value(self) -> bool:
         """Reflect the vehicle's reported pre-conditioning state."""
-        value = value_at(self.vehicle_data, "v2.climateStatus.preClimateActive")
-        if value is None:
-            value = value_at(
-                self.vehicle_data,
-                "additionalVehicleStatus.climateStatus.preClimateActive",
-            )
-        return boolean_value(value) is True
+        return climate_is_on(self.vehicle_data)
 
     async def async_turn_on(self, **kwargs: Any) -> None:
-        """Start AC with the locally configured target temperature and duration."""
-        setting = self._runtime.climate_setting(self.vin)
+        """Start the climate with the configured temperature, run time and preset."""
         await self._async_command(
             True,
             service_id="ZAF",
             command="",
-            parameters=[
-                {"key": "AC", "value": True},
-                {"key": "AC.temp", "value": str(setting.get("temp", 22.0))},
-                {"key": "AC.duration", "value": self._duration()},
-            ],
+            parameters=climate_start_parameters(
+                self._runtime.climate_setting(self.vin)
+            ),
         )
 
     async def async_turn_off(self, **kwargs: Any) -> None:
-        """Stop AC pre-conditioning."""
+        """Stop the climate."""
         await self._async_command(
             False,
             service_id="ZAF",
             command="",
-            parameters=[{"key": "AC", "value": False}],
+            parameters=climate_stop_parameters(),
         )
 
 
