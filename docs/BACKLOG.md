@@ -150,10 +150,18 @@
   тож українські назви на живому HA не переглянуто: бекенд будує `friendly_name` мовою
   системи, а не мовою профілю.
 
-### [ ] T8 🟢 Картка вартового тягне SDK з CDN
+### [x] T8 🟢 Картка вартового тягне SDK з CDN
 - `www/zeekr-sentinel-card.js:136` — `import("https://unpkg.com/@volcengine/rtc@4.69.2/index.esm.min.js")`.
 - Зробити: покласти цей файл у `www/`, зареєструвати другий static path в `__init__.py`
   (`async_setup`), імпортувати локально.
+- Результат (1.8.1): `www/vendor/volcengine-rtc-4.69.2.esm.min.js` (2,2 МБ, без змін із
+  npm-тарболу, sha512 збігся з `dist.integrity` реєстру) + `volcengine-rtc-LICENSE`
+  (BSD-3-Clause). `async_setup` реєструє `/api/zeekr/volcengine-rtc-4.69.2.esm.min.js`
+  (ім'я файлу з версією, тому `cache_headers=True`); ім'я — константа `RTC_SDK_FILE`.
+  Картка імпортує звідти. Живий HA: інтеграція loaded, логи чисті. Відтворення відео
+  на авто не перевіряли. Сам SDK і далі звертається до хмари Volcengine (сигналінг,
+  журнали `web-log-report.*`) і має URL плагінів аналітики на `iapplogcdn.com`; без
+  них відео не працює, тож це лишили як є.
 
 ### [ ] T9 🟢 Дублікати керування кліматом
 - `switch.air_conditioning` і `number.ac_target_temperature` повторюють `climate`.
