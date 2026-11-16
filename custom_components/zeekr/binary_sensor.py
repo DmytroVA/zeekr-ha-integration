@@ -1,4 +1,4 @@
-"""Binary sensor entities for charging, openings, and GPS-jamming detection."""
+"""Binary sensor entities for plug, openings, lights, activity, and GPS-jamming detection."""
 
 from typing import Any, List, Tuple
 
@@ -12,21 +12,13 @@ from homeassistant.const import EntityCategory
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 
-from .coordinator import ZeekrRuntimeData
-from .entity import ZeekrVehicleEntity, boolean_value, status_value
+from .coordinator import POWER_MODE_PATH, ZeekrRuntimeData
+from .entity import ZeekrVehicleEntity, boolean_value, value_at
 
-_POS_TRUST = "basicVehicleStatus.position.posCanBeTrusted"
+_POS_TRUST = "basic.position.posCanBeTrusted"
 
-# First two keys are preserved from the superseded integration (unique_ids).
+# Keys are part of unique_ids and must not change.
 BINARY_SENSOR_FIELDS: List[Tuple[BinarySensorEntityDescription, str]] = [
-    (
-        BinarySensorEntityDescription(
-            key="charging",
-            translation_key="charging",
-            device_class=BinarySensorDeviceClass.BATTERY_CHARGING,
-        ),
-        "additionalVehicleStatus.electricVehicleStatus.isCharging",
-    ),
     (
         BinarySensorEntityDescription(
             key="hv_battery_optimization",
@@ -34,7 +26,7 @@ BINARY_SENSOR_FIELDS: List[Tuple[BinarySensorEntityDescription, str]] = [
             device_class=BinarySensorDeviceClass.PROBLEM,
             entity_category=EntityCategory.DIAGNOSTIC,
         ),
-        "additionalVehicleStatus.electricVehicleStatus.hvBatteryOptimizeFlag",
+        "electricVehicleStatus.hvBatteryOptimizeFlag",
     ),
     (
         BinarySensorEntityDescription(
@@ -42,7 +34,7 @@ BINARY_SENSOR_FIELDS: List[Tuple[BinarySensorEntityDescription, str]] = [
             translation_key="plugged_in",
             device_class=BinarySensorDeviceClass.PLUG,
         ),
-        "additionalVehicleStatus.electricVehicleStatus.isPluggedIn",
+        "electricVehicleStatus.isPluggedIn",
     ),
     (
         BinarySensorEntityDescription(
@@ -50,7 +42,7 @@ BINARY_SENSOR_FIELDS: List[Tuple[BinarySensorEntityDescription, str]] = [
             translation_key="door_front_left",
             device_class=BinarySensorDeviceClass.DOOR,
         ),
-        "additionalVehicleStatus.drivingSafetyStatus.doorOpenStatusDriver",
+        "drivingSafetyStatus.doorOpenStatusDriver",
     ),
     (
         BinarySensorEntityDescription(
@@ -58,7 +50,7 @@ BINARY_SENSOR_FIELDS: List[Tuple[BinarySensorEntityDescription, str]] = [
             translation_key="door_front_right",
             device_class=BinarySensorDeviceClass.DOOR,
         ),
-        "additionalVehicleStatus.drivingSafetyStatus.doorOpenStatusPassenger",
+        "drivingSafetyStatus.doorOpenStatusPassenger",
     ),
     (
         BinarySensorEntityDescription(
@@ -66,7 +58,7 @@ BINARY_SENSOR_FIELDS: List[Tuple[BinarySensorEntityDescription, str]] = [
             translation_key="door_rear_left",
             device_class=BinarySensorDeviceClass.DOOR,
         ),
-        "additionalVehicleStatus.drivingSafetyStatus.doorOpenStatusDriverRear",
+        "drivingSafetyStatus.doorOpenStatusDriverRear",
     ),
     (
         BinarySensorEntityDescription(
@@ -74,7 +66,7 @@ BINARY_SENSOR_FIELDS: List[Tuple[BinarySensorEntityDescription, str]] = [
             translation_key="door_rear_right",
             device_class=BinarySensorDeviceClass.DOOR,
         ),
-        "additionalVehicleStatus.drivingSafetyStatus.doorOpenStatusPassengerRear",
+        "drivingSafetyStatus.doorOpenStatusPassengerRear",
     ),
     (
         BinarySensorEntityDescription(
@@ -82,7 +74,7 @@ BINARY_SENSOR_FIELDS: List[Tuple[BinarySensorEntityDescription, str]] = [
             translation_key="trunk",
             device_class=BinarySensorDeviceClass.DOOR,
         ),
-        "additionalVehicleStatus.drivingSafetyStatus.trunkOpenStatus",
+        "drivingSafetyStatus.trunkOpenStatus",
     ),
     (
         BinarySensorEntityDescription(
@@ -90,7 +82,7 @@ BINARY_SENSOR_FIELDS: List[Tuple[BinarySensorEntityDescription, str]] = [
             translation_key="hood",
             device_class=BinarySensorDeviceClass.DOOR,
         ),
-        "additionalVehicleStatus.drivingSafetyStatus.engineHoodOpenStatus",
+        "drivingSafetyStatus.engineHoodOpenStatus",
     ),
     (
         BinarySensorEntityDescription(
@@ -98,20 +90,19 @@ BINARY_SENSOR_FIELDS: List[Tuple[BinarySensorEntityDescription, str]] = [
             translation_key="trunk_lock",
             device_class=BinarySensorDeviceClass.LOCK,
         ),
-        "additionalVehicleStatus.drivingSafetyStatus.trunkLockStatus",
+        "drivingSafetyStatus.trunkLockStatus",
     ),
-    # ---- Fields only the v2.0 status document carries ----
     (
         BinarySensorEntityDescription(
             key="low_beam", translation_key="low_beam", device_class=BinarySensorDeviceClass.LIGHT
         ),
-        "additionalVehicleStatus.runningStatus.loBeam",
+        "runningStatus.loBeam",
     ),
     (
         BinarySensorEntityDescription(
             key="high_beam", translation_key="high_beam", device_class=BinarySensorDeviceClass.LIGHT
         ),
-        "additionalVehicleStatus.runningStatus.hiBeam",
+        "runningStatus.hiBeam",
     ),
     (
         BinarySensorEntityDescription(
@@ -119,13 +110,13 @@ BINARY_SENSOR_FIELDS: List[Tuple[BinarySensorEntityDescription, str]] = [
             translation_key="hazard_lights",
             device_class=BinarySensorDeviceClass.LIGHT,
         ),
-        "additionalVehicleStatus.runningStatus.hwl",
+        "runningStatus.hwl",
     ),
     (
         BinarySensorEntityDescription(
             key="park_comfort", translation_key="park_comfort", icon="mdi:sofa"
         ),
-        "basicVehicleStatus.parkComfortState",
+        "basic.parkComfortState",
     ),
 ]
 
@@ -151,7 +142,7 @@ class ZeekrBinarySensor(ZeekrVehicleEntity, BinarySensorEntity):
     @property
     def is_on(self) -> bool:
         """Return the parsed provider flag; availability tracks missing values."""
-        value = boolean_value(status_value(self.vehicle_data, self._path)) is True
+        value = boolean_value(value_at(self.vehicle_data, self._path)) is True
         # The car reports locks as 1 = locked; Home Assistant's lock class is on = unlocked.
         if self.entity_description.device_class == BinarySensorDeviceClass.LOCK:
             return not value
@@ -160,7 +151,7 @@ class ZeekrBinarySensor(ZeekrVehicleEntity, BinarySensorEntity):
     @property
     def available(self) -> bool:
         """Keep a missing or unknown provider flag from appearing as an off state."""
-        value = boolean_value(status_value(self.vehicle_data, self._path))
+        value = boolean_value(value_at(self.vehicle_data, self._path))
         return super().available and value is not None
 
 
@@ -184,13 +175,44 @@ class ZeekrGpsSpoofSensor(ZeekrVehicleEntity, BinarySensorEntity):
     @property
     def is_on(self) -> bool:
         """Return True when the reported position is not trustworthy."""
-        return boolean_value(status_value(self.vehicle_data, _POS_TRUST)) is not True
+        return boolean_value(value_at(self.vehicle_data, _POS_TRUST)) is not True
 
     @property
     def available(self) -> bool:
         """Only report once the vehicle actually sends a trust flag."""
-        trust = status_value(self.vehicle_data, _POS_TRUST)
+        trust = value_at(self.vehicle_data, _POS_TRUST)
         return super().available and trust not in (None, "")
+
+
+class ZeekrActiveSensor(ZeekrVehicleEntity, BinarySensorEntity):
+    """On while the car is powered up (awake), from ``temStatus.powerMode``.
+
+    The car reports ``1`` while it is awake (driving, someone inside, a remote
+    command running) and ``0`` once it falls asleep. The same signal speeds up
+    polling: see ``VehicleStatusCoordinator``.
+    """
+
+    _attr_device_class = BinarySensorDeviceClass.RUNNING
+    _attr_translation_key = "active"
+
+    def __init__(self, coordinator: Any, vin: str) -> None:
+        """Bind the power-mode sensor to one vehicle."""
+        super().__init__(coordinator, vin)
+        self._attr_unique_id = f"{vin}_active"
+
+    def _power_mode(self) -> Any:
+        """Return the raw power mode code, or None when not reported."""
+        return value_at(self.vehicle_data, POWER_MODE_PATH)
+
+    @property
+    def is_on(self) -> bool:
+        """Return True while the car reports power mode ``1``."""
+        return str(self._power_mode()) == "1"
+
+    @property
+    def available(self) -> bool:
+        """Only report once the status document carries the power mode."""
+        return super().available and self._power_mode() not in (None, "")
 
 
 async def async_setup_entry(
@@ -208,5 +230,8 @@ async def async_setup_entry(
     entities.extend(
         ZeekrGpsSpoofSensor(runtime.coordinator, vin)
         for vin in runtime.api.vehicles
+    )
+    entities.extend(
+        ZeekrActiveSensor(runtime.coordinator, vin) for vin in runtime.api.vehicles
     )
     async_add_entities(entities)

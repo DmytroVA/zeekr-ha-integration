@@ -62,9 +62,6 @@
       "odometer": {
         "name": "Odometer"
       },
-      "main_battery_voltage": {
-        "name": "Main Battery Voltage"
-      },
       "average_power_consumption": {
         "name": "Average Power Consumption"
       },
@@ -81,9 +78,6 @@
           "released": "Released",
           "engaged": "Engaged"
         }
-      },
-      "exterior_temperature": {
-        "name": "Exterior Temperature"
       },
       "speed": {
         "name": "Speed"
@@ -126,9 +120,6 @@
       }
     },
     "binary_sensor": {
-      "charging": {
-        "name": "Charging"
-      },
       "hv_battery_optimization": {
         "name": "HV Battery Optimization"
       },
@@ -167,6 +158,9 @@
       },
       "park_comfort": {
         "name": "Park Comfort Mode"
+      },
+      "active": {
+        "name": "Active"
       },
       "gps_spoofed": {
         "name": "GPS Spoofed"

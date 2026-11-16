@@ -14,7 +14,7 @@ from .command_entity import (
     climate_stop_parameters,
 )
 from .coordinator import ZeekrRuntimeData
-from .entity import boolean_value, has_v2, value_at
+from .entity import boolean_value, value_at
 
 
 class ZeekrCommandSwitch(ZeekrCommandEntity, SwitchEntity):
@@ -41,7 +41,7 @@ class ZeekrSentrySwitch(ZeekrCommandSwitch):
 
         (``usageMode`` is not a sentry flag: it is 1 whenever the car is awake.)
         """
-        return str(value_at(self.vehicle_data, "v2.basic.vstdModeStatus")) in (
+        return str(value_at(self.vehicle_data, "basic.vstdModeStatus")) in (
             "1",
             "2",
             "3",
@@ -111,7 +111,7 @@ class ZeekrDefrostSwitch(ZeekrCommandSwitch):
 
     _attr_translation_key = "defrost"
     _attr_icon = "mdi:car-defrost-front"
-    STATE_PATH = "v2.climateStatus.defrost"
+    STATE_PATH = "climateStatus.defrost"
 
     def __init__(self, runtime: ZeekrRuntimeData, vin: str) -> None:
         """Bind the defrost switch to one vehicle."""
@@ -150,7 +150,7 @@ class ZeekrCabinVentSwitch(ZeekrCommandSwitch):
 
     _attr_translation_key = "cabin_ventilation"
     _attr_icon = "mdi:fan"
-    STATE_PATH = "v2.climateStatus.airBlowerActive"
+    STATE_PATH = "climateStatus.airBlowerActive"
     _PARAMETERS = [
         {"key": "rcc.conditioner", "value": "50"},
         {"key": "rcc.ventilation", "value": "0"},
@@ -190,7 +190,7 @@ class ZeekrSteeringWheelHeatSwitch(ZeekrCommandSwitch):
 
     _attr_translation_key = "steering_wheel_heating"
     _attr_icon = "mdi:steering"
-    STATE_PATH = "v2.climateStatus.steerWhlHeatingSts"
+    STATE_PATH = "climateStatus.steerWhlHeatingSts"
 
     def __init__(self, runtime: ZeekrRuntimeData, vin: str) -> None:
         """Bind the steering-wheel heating switch to one vehicle."""
@@ -246,6 +246,6 @@ async def async_setup_entry(
         entities.append(ZeekrAcSwitch(runtime, vin))
         for cls in _OPTIONAL_SWITCHES:
             path: Optional[str] = cls.STATE_PATH
-            if not has_v2(data) or value_at(data, path) is not None:
+            if not data or value_at(data, path) is not None:
                 entities.append(cls(runtime, vin))
     async_add_entities(entities)

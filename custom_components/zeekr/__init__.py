@@ -17,6 +17,7 @@ from homeassistant.helpers.aiohttp_client import async_get_clientsession
 from .api import ZeekrApi, ZeekrApiError, ZeekrAuthError
 from .button import REMOVED_BUTTON_KEYS
 from .commands import async_run_command
+from .fields import REMOVED_RAW_KEYS
 from .const import (
     DOMAIN,
     PLATFORMS,
@@ -95,6 +96,21 @@ async def async_migrate_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
             }:
                 registry.async_remove(entity.entity_id)
         hass.config_entries.async_update_entry(entry, minor_version=5)
+    if entry.version == 1 and entry.minor_version < 6:
+        # 1.9: only the v2.0 status document is read. Entities of fields it does
+        # not carry are removed: charging (isCharging), 12 V battery voltage,
+        # exterior temperature and the raw sensors listed in REMOVED_RAW_KEYS.
+        removed = {
+            ("binary_sensor", "charging"),
+            ("sensor", "main_battery_voltage"),
+            ("sensor", "exterior_temperature"),
+        } | {("sensor", f"raw_{key}") for key in REMOVED_RAW_KEYS}
+        registry = er.async_get(hass)
+        for entity in er.async_entries_for_config_entry(registry, entry.entry_id):
+            _vin, _, key = entity.unique_id.partition("_")
+            if (entity.domain, key) in removed:
+                registry.async_remove(entity.entity_id)
+        hass.config_entries.async_update_entry(entry, minor_version=6)
     return True
 
 

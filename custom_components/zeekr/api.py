@@ -176,10 +176,14 @@ class ZeekrApi:
         return self.export_data()
 
     async def async_get_vehicle_status(self, vin: str) -> Dict[str, Any]:
-        """Fetch latest status, refreshing the account token once if rejected."""
+        """Fetch the latest v2.0 status document, refreshing the token once if rejected.
+
+        v2.0 is the document the official app reads; the older v1.0 one on the
+        same host is not used. Fields v2.0 does not carry are not exposed.
+        """
         response = await self._new_call(
             "GET",
-            "/ms-vehicle-status/api/v1.0/vehicle/status/latest",
+            "/ms-vehicle-status/api/v2.0/vehicle/status/latest",
             params={"latest": "false", "target": "new"},
             headers={"X-VIN": vin, "X-APP-ID": APP_ID},
         )
@@ -187,25 +191,6 @@ class ZeekrApi:
         data = self._data(response)
         if not isinstance(data, dict):
             raise ZeekrApiError("Vehicle status response data was not an object")
-        # The app itself reads the v2.0 status document. It is flatter, carries
-        # fields v1.0 lacks (sentry ``basic.vstdModeStatus``, seat heating levels,
-        # lights ...) and is refreshed within seconds of a command, but it misses
-        # a few v1.0 fields (12 V battery voltage), so both are kept: v1.0 as the
-        # base document and v2.0 under the ``v2`` key.
-        try:
-            v2 = await self._new_call(
-                "GET",
-                "/ms-vehicle-status/api/v2.0/vehicle/status/latest",
-                params={"latest": "false", "target": "new"},
-                headers={"X-VIN": vin, "X-APP-ID": APP_ID},
-            )
-        except ZeekrAuthError:
-            raise
-        except ZeekrApiError:
-            v2 = {}
-        v2_data = v2.get("data") if str(v2.get("code")) == "000000" else None
-        if isinstance(v2_data, dict):
-            data["v2"] = v2_data
         return data
 
     async def async_set_sentry(self, vin: str, enabled: bool) -> None:

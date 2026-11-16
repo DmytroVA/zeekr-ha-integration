@@ -9,9 +9,9 @@ from homeassistant.helpers.entity_platform import AddEntitiesCallback
 
 from .command_entity import ZeekrCommandEntity
 from .coordinator import ZeekrRuntimeData
-from .entity import status_value
+from .entity import value_at
 
-_LOCK_PATH = "additionalVehicleStatus.drivingSafetyStatus.centralLockingStatus"
+_LOCK_PATH = "drivingSafetyStatus.centralLockingStatus"
 
 
 class ZeekrDoorLock(ZeekrCommandEntity, LockEntity):
@@ -26,7 +26,7 @@ class ZeekrDoorLock(ZeekrCommandEntity, LockEntity):
 
     def _reported_value(self) -> bool:
         """True when the car reports the central locking as locked."""
-        return str(status_value(self.vehicle_data, _LOCK_PATH)) == "1"
+        return str(value_at(self.vehicle_data, _LOCK_PATH)) == "1"
 
     @property
     def is_locked(self) -> bool:

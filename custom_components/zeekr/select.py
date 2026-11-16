@@ -11,7 +11,7 @@ from homeassistant.helpers.entity_platform import AddEntitiesCallback
 
 from .command_entity import ZeekrCommandEntity
 from .coordinator import ZeekrRuntimeData
-from .entity import has_v2, numeric_value, value_at
+from .entity import numeric_value, value_at
 
 # The app's own seat screen uses levels 0-3 and cycles 0 -> 3 -> 2 -> 1 -> 0 on
 # each tap (strongest first), with icons hot_1 .. hot_3: 1 is the weakest level.
@@ -32,14 +32,14 @@ class ZeekrSeatSpec:
 
 
 SEAT_SELECTS: List[ZeekrSeatSpec] = [
-    ZeekrSeatSpec("seat_heat_driver", "SH.11", "v2.climateStatus.drvHeatLv", "mdi:car-seat-heater"),
-    ZeekrSeatSpec("seat_heat_passenger", "SH.19", "v2.climateStatus.passHeatLv", "mdi:car-seat-heater"),
-    ZeekrSeatSpec("seat_heat_rear_left", "SH.21", "v2.climateStatus.rlHeatLv", "mdi:car-seat-heater"),
-    ZeekrSeatSpec("seat_heat_rear_right", "SH.29", "v2.climateStatus.rrHeatLv", "mdi:car-seat-heater"),
-    ZeekrSeatSpec("seat_vent_driver", "SV.11", "v2.climateStatus.drvVentDetail", "mdi:car-seat-cooler"),
-    ZeekrSeatSpec("seat_vent_passenger", "SV.19", "v2.climateStatus.passVentDetail", "mdi:car-seat-cooler"),
-    ZeekrSeatSpec("seat_vent_rear_left", "SV.21", "v2.climateStatus.rlVentDetail", "mdi:car-seat-cooler"),
-    ZeekrSeatSpec("seat_vent_rear_right", "SV.29", "v2.climateStatus.rrVentDetail", "mdi:car-seat-cooler"),
+    ZeekrSeatSpec("seat_heat_driver", "SH.11", "climateStatus.drvHeatLv", "mdi:car-seat-heater"),
+    ZeekrSeatSpec("seat_heat_passenger", "SH.19", "climateStatus.passHeatLv", "mdi:car-seat-heater"),
+    ZeekrSeatSpec("seat_heat_rear_left", "SH.21", "climateStatus.rlHeatLv", "mdi:car-seat-heater"),
+    ZeekrSeatSpec("seat_heat_rear_right", "SH.29", "climateStatus.rrHeatLv", "mdi:car-seat-heater"),
+    ZeekrSeatSpec("seat_vent_driver", "SV.11", "climateStatus.drvVentDetail", "mdi:car-seat-cooler"),
+    ZeekrSeatSpec("seat_vent_passenger", "SV.19", "climateStatus.passVentDetail", "mdi:car-seat-cooler"),
+    ZeekrSeatSpec("seat_vent_rear_left", "SV.21", "climateStatus.rlVentDetail", "mdi:car-seat-cooler"),
+    ZeekrSeatSpec("seat_vent_rear_right", "SV.29", "climateStatus.rrVentDetail", "mdi:car-seat-cooler"),
 ]
 
 
@@ -83,10 +83,10 @@ class ZeekrSeatSelect(ZeekrCommandEntity, SelectEntity):
 
 
 WINDOW_POSITIONS = (
-    "v2.climateStatus.winPosDriver",
-    "v2.climateStatus.winPosPassenger",
-    "v2.climateStatus.winPosDriverRear",
-    "v2.climateStatus.winPosPassengerRear",
+    "climateStatus.winPosDriver",
+    "climateStatus.winPosPassenger",
+    "climateStatus.winPosDriverRear",
+    "climateStatus.winPosPassengerRear",
 )
 WINDOW_OPTIONS = ["closed", "vent", "open"]
 # The app's two opening modes and its close command (``RWS`` window service).
@@ -173,8 +173,8 @@ async def async_setup_entry(
     for vin in runtime.api.vehicles:
         data = (runtime.coordinator.data or {}).get(vin, {})
         for spec in SEAT_SELECTS:
-            if not has_v2(data) or value_at(data, spec.path) is not None:
+            if not data or value_at(data, spec.path) is not None:
                 entities.append(ZeekrSeatSelect(runtime, vin, spec))
-        if not has_v2(data) or value_at(data, WINDOW_POSITIONS[0]) is not None:
+        if not data or value_at(data, WINDOW_POSITIONS[0]) is not None:
             entities.append(ZeekrWindowSelect(runtime, vin))
     async_add_entities(entities)

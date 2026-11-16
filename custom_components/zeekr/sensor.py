@@ -27,21 +27,20 @@ from homeassistant.helpers.entity_platform import AddEntitiesCallback
 
 import json
 
-from .entity import ZeekrVehicleEntity, numeric_value, status_value, value_at
+from .entity import ZeekrVehicleEntity, numeric_value, value_at
 from .coordinator import ZeekrRuntimeData
 from .fields import RAW_FIELDS
 
 # Paths already surfaced by a typed binary_sensor; excluded from raw coverage.
 _BINARY_PATHS = {
-    "additionalVehicleStatus.electricVehicleStatus.isCharging",
-    "additionalVehicleStatus.electricVehicleStatus.hvBatteryOptimizeFlag",
-    "additionalVehicleStatus.electricVehicleStatus.isPluggedIn",
-    "additionalVehicleStatus.drivingSafetyStatus.doorOpenStatusDriver",
-    "additionalVehicleStatus.drivingSafetyStatus.doorOpenStatusPassenger",
-    "additionalVehicleStatus.drivingSafetyStatus.doorOpenStatusDriverRear",
-    "additionalVehicleStatus.drivingSafetyStatus.doorOpenStatusPassengerRear",
-    "additionalVehicleStatus.drivingSafetyStatus.trunkOpenStatus",
-    "additionalVehicleStatus.drivingSafetyStatus.engineHoodOpenStatus",
+    "electricVehicleStatus.hvBatteryOptimizeFlag",
+    "electricVehicleStatus.isPluggedIn",
+    "drivingSafetyStatus.doorOpenStatusDriver",
+    "drivingSafetyStatus.doorOpenStatusPassenger",
+    "drivingSafetyStatus.doorOpenStatusDriverRear",
+    "drivingSafetyStatus.doorOpenStatusPassengerRear",
+    "drivingSafetyStatus.trunkOpenStatus",
+    "drivingSafetyStatus.engineHoodOpenStatus",
 }
 
 
@@ -54,9 +53,6 @@ class ZeekrSensorSpec:
     numeric: bool = True
     invalid: Tuple[float, ...] = ()
     value_map: Optional[Dict[str, str]] = None
-    # False for fields whose v2.0 encoding differs from the v1.0 one this sensor
-    # has always reported (keeps existing states and automations stable).
-    prefer_v2: bool = True
 
 
 # Original keys below are preserved verbatim so existing entity unique_ids
@@ -70,7 +66,7 @@ SENSOR_FIELDS: List[ZeekrSensorSpec] = [
             device_class=SensorDeviceClass.DISTANCE,
             state_class=SensorStateClass.MEASUREMENT,
         ),
-        "additionalVehicleStatus.electricVehicleStatus.distanceToEmptyOnBatteryOnly",
+        "electricVehicleStatus.distanceToEmptyOnBatteryOnly",
     ),
     ZeekrSensorSpec(
         SensorEntityDescription(
@@ -80,7 +76,7 @@ SENSOR_FIELDS: List[ZeekrSensorSpec] = [
             device_class=SensorDeviceClass.BATTERY,
             state_class=SensorStateClass.MEASUREMENT,
         ),
-        "additionalVehicleStatus.electricVehicleStatus.chargeLevel",
+        "electricVehicleStatus.chargeLevel",
     ),
     ZeekrSensorSpec(
         SensorEntityDescription(
@@ -90,13 +86,12 @@ SENSOR_FIELDS: List[ZeekrSensorSpec] = [
             device_class=SensorDeviceClass.TEMPERATURE,
             state_class=SensorStateClass.MEASUREMENT,
         ),
-        "additionalVehicleStatus.climateStatus.interiorTemp",
+        "climateStatus.interiorTemp",
     ),
     ZeekrSensorSpec(
         SensorEntityDescription(key="engine_status", translation_key="engine_status"),
-        "basicVehicleStatus.engineStatus",
+        "basic.engineStatus",
         numeric=False,
-        prefer_v2=False,
     ),
     ZeekrSensorSpec(
         SensorEntityDescription(
@@ -107,7 +102,7 @@ SENSOR_FIELDS: List[ZeekrSensorSpec] = [
             suggested_display_precision=0,
             native_unit_of_measurement=UnitOfPressure.CBAR,
         ),
-        "additionalVehicleStatus.maintenanceStatus.tyreStatusDriver",
+        "additionalMaintenanceStatus.tyreStatusDriver",
     ),
     ZeekrSensorSpec(
         SensorEntityDescription(
@@ -118,7 +113,7 @@ SENSOR_FIELDS: List[ZeekrSensorSpec] = [
             suggested_display_precision=0,
             native_unit_of_measurement=UnitOfPressure.CBAR,
         ),
-        "additionalVehicleStatus.maintenanceStatus.tyreStatusPassenger",
+        "additionalMaintenanceStatus.tyreStatusPassenger",
     ),
     ZeekrSensorSpec(
         SensorEntityDescription(
@@ -129,7 +124,7 @@ SENSOR_FIELDS: List[ZeekrSensorSpec] = [
             suggested_display_precision=0,
             native_unit_of_measurement=UnitOfPressure.CBAR,
         ),
-        "additionalVehicleStatus.maintenanceStatus.tyreStatusDriverRear",
+        "additionalMaintenanceStatus.tyreStatusDriverRear",
     ),
     ZeekrSensorSpec(
         SensorEntityDescription(
@@ -140,7 +135,7 @@ SENSOR_FIELDS: List[ZeekrSensorSpec] = [
             suggested_display_precision=0,
             native_unit_of_measurement=UnitOfPressure.CBAR,
         ),
-        "additionalVehicleStatus.maintenanceStatus.tyreStatusPassengerRear",
+        "additionalMaintenanceStatus.tyreStatusPassengerRear",
     ),
     ZeekrSensorSpec(
         SensorEntityDescription(
@@ -150,7 +145,7 @@ SENSOR_FIELDS: List[ZeekrSensorSpec] = [
             device_class=SensorDeviceClass.DISTANCE,
             state_class=SensorStateClass.MEASUREMENT,
         ),
-        "additionalVehicleStatus.maintenanceStatus.distanceToService",
+        "additionalMaintenanceStatus.distanceToService",
     ),
     ZeekrSensorSpec(
         SensorEntityDescription(
@@ -160,17 +155,7 @@ SENSOR_FIELDS: List[ZeekrSensorSpec] = [
             device_class=SensorDeviceClass.DISTANCE,
             state_class=SensorStateClass.TOTAL_INCREASING,
         ),
-        "additionalVehicleStatus.maintenanceStatus.odometer",
-    ),
-    ZeekrSensorSpec(
-        SensorEntityDescription(
-            key="main_battery_voltage",
-            translation_key="main_battery_voltage",
-            native_unit_of_measurement=UnitOfElectricPotential.VOLT,
-            device_class=SensorDeviceClass.VOLTAGE,
-            state_class=SensorStateClass.MEASUREMENT,
-        ),
-        "additionalVehicleStatus.maintenanceStatus.mainBatteryStatus.voltage",
+        "additionalMaintenanceStatus.odometer",
     ),
     ZeekrSensorSpec(
         SensorEntityDescription(
@@ -179,7 +164,7 @@ SENSOR_FIELDS: List[ZeekrSensorSpec] = [
             native_unit_of_measurement="kWh/100 km",
             state_class=SensorStateClass.MEASUREMENT,
         ),
-        "additionalVehicleStatus.electricVehicleStatus.averPowerConsumption",
+        "electricVehicleStatus.averPowerConsumption",
     ),
     ZeekrSensorSpec(
         SensorEntityDescription(
@@ -188,7 +173,7 @@ SENSOR_FIELDS: List[ZeekrSensorSpec] = [
             device_class=SensorDeviceClass.ENUM,
             options=["unlocked", "locked"],
         ),
-        "additionalVehicleStatus.drivingSafetyStatus.centralLockingStatus",
+        "drivingSafetyStatus.centralLockingStatus",
         numeric=False,
         value_map={"0": "unlocked", "1": "locked"},
     ),
@@ -199,23 +184,11 @@ SENSOR_FIELDS: List[ZeekrSensorSpec] = [
             device_class=SensorDeviceClass.ENUM,
             options=["released", "engaged"],
         ),
-        "additionalVehicleStatus.drivingSafetyStatus.electricParkBrakeStatus",
+        "drivingSafetyStatus.electricParkBrakeStatus",
         numeric=False,
         value_map={"0": "released", "1": "engaged"},
     ),
     # ---- New sensors added by this integration (new keys, new unique_ids) ----
-    ZeekrSensorSpec(
-        SensorEntityDescription(
-            key="exterior_temperature",
-            translation_key="exterior_temperature",
-            native_unit_of_measurement=UnitOfTemperature.CELSIUS,
-            device_class=SensorDeviceClass.TEMPERATURE,
-            state_class=SensorStateClass.MEASUREMENT,
-            # Neither status document carries exteriorTemp: always unknown.
-            entity_registry_enabled_default=False,
-        ),
-        "additionalVehicleStatus.climateStatus.exteriorTemp",
-    ),
     ZeekrSensorSpec(
         SensorEntityDescription(
             key="speed",
@@ -224,7 +197,7 @@ SENSOR_FIELDS: List[ZeekrSensorSpec] = [
             device_class=SensorDeviceClass.SPEED,
             state_class=SensorStateClass.MEASUREMENT,
         ),
-        "basicVehicleStatus.speed",
+        "basic.speed",
     ),
     ZeekrSensorSpec(
         SensorEntityDescription(
@@ -235,7 +208,7 @@ SENSOR_FIELDS: List[ZeekrSensorSpec] = [
             state_class=SensorStateClass.MEASUREMENT,
             entity_category=EntityCategory.DIAGNOSTIC,
         ),
-        "additionalVehicleStatus.electricVehicleStatus.chargeIAct",
+        "electricVehicleStatus.chargeIAct",
     ),
     ZeekrSensorSpec(
         SensorEntityDescription(
@@ -246,7 +219,7 @@ SENSOR_FIELDS: List[ZeekrSensorSpec] = [
             state_class=SensorStateClass.MEASUREMENT,
             entity_category=EntityCategory.DIAGNOSTIC,
         ),
-        "additionalVehicleStatus.electricVehicleStatus.chargeUAct",
+        "electricVehicleStatus.chargeUAct",
     ),
     ZeekrSensorSpec(
         SensorEntityDescription(
@@ -256,7 +229,7 @@ SENSOR_FIELDS: List[ZeekrSensorSpec] = [
             device_class=SensorDeviceClass.DURATION,
             entity_category=EntityCategory.DIAGNOSTIC,
         ),
-        "additionalVehicleStatus.electricVehicleStatus.timeToFullyCharged",
+        "electricVehicleStatus.timeToFullyCharged",
         invalid=(2047,),
     ),
     ZeekrSensorSpec(
@@ -268,7 +241,7 @@ SENSOR_FIELDS: List[ZeekrSensorSpec] = [
             state_class=SensorStateClass.MEASUREMENT,
             entity_category=EntityCategory.DIAGNOSTIC,
         ),
-        "additionalVehicleStatus.maintenanceStatus.tyreTempDriver",
+        "additionalMaintenanceStatus.tyreTempDriver",
     ),
     ZeekrSensorSpec(
         SensorEntityDescription(
@@ -279,7 +252,7 @@ SENSOR_FIELDS: List[ZeekrSensorSpec] = [
             state_class=SensorStateClass.MEASUREMENT,
             entity_category=EntityCategory.DIAGNOSTIC,
         ),
-        "additionalVehicleStatus.maintenanceStatus.tyreTempPassenger",
+        "additionalMaintenanceStatus.tyreTempPassenger",
     ),
     ZeekrSensorSpec(
         SensorEntityDescription(
@@ -290,7 +263,7 @@ SENSOR_FIELDS: List[ZeekrSensorSpec] = [
             state_class=SensorStateClass.MEASUREMENT,
             entity_category=EntityCategory.DIAGNOSTIC,
         ),
-        "additionalVehicleStatus.maintenanceStatus.tyreTempDriverRear",
+        "additionalMaintenanceStatus.tyreTempDriverRear",
     ),
     ZeekrSensorSpec(
         SensorEntityDescription(
@@ -301,7 +274,7 @@ SENSOR_FIELDS: List[ZeekrSensorSpec] = [
             state_class=SensorStateClass.MEASUREMENT,
             entity_category=EntityCategory.DIAGNOSTIC,
         ),
-        "additionalVehicleStatus.maintenanceStatus.tyreTempPassengerRear",
+        "additionalMaintenanceStatus.tyreTempPassengerRear",
     ),
     ZeekrSensorSpec(
         SensorEntityDescription(
@@ -311,7 +284,7 @@ SENSOR_FIELDS: List[ZeekrSensorSpec] = [
             device_class=SensorDeviceClass.DISTANCE,
             entity_category=EntityCategory.DIAGNOSTIC,
         ),
-        "additionalVehicleStatus.runningStatus.tripMeter1",
+        "runningStatus.tripMeter1",
     ),
     ZeekrSensorSpec(
         SensorEntityDescription(
@@ -321,7 +294,7 @@ SENSOR_FIELDS: List[ZeekrSensorSpec] = [
             device_class=SensorDeviceClass.DISTANCE,
             entity_category=EntityCategory.DIAGNOSTIC,
         ),
-        "additionalVehicleStatus.runningStatus.tripMeter2",
+        "runningStatus.tripMeter2",
     ),
     ZeekrSensorSpec(
         SensorEntityDescription(
@@ -331,7 +304,7 @@ SENSOR_FIELDS: List[ZeekrSensorSpec] = [
             device_class=SensorDeviceClass.DURATION,
             entity_category=EntityCategory.DIAGNOSTIC,
         ),
-        "additionalVehicleStatus.maintenanceStatus.daysToService",
+        "additionalMaintenanceStatus.daysToService",
     ),
     ZeekrSensorSpec(
         SensorEntityDescription(
@@ -341,7 +314,7 @@ SENSOR_FIELDS: List[ZeekrSensorSpec] = [
             native_unit_of_measurement="µg/m³",
             state_class=SensorStateClass.MEASUREMENT,
         ),
-        "additionalVehicleStatus.pollutionStatus.interiorPM25",
+        "pollutionStatus.interiorPM25",
     ),
 ]
 
@@ -356,7 +329,6 @@ class ZeekrSensor(ZeekrVehicleEntity, SensorEntity):
         super().__init__(coordinator, vin)
         self.entity_description = spec.description
         self._path = spec.path
-        self._prefer_v2 = spec.prefer_v2
         self._numeric = spec.numeric
         self._invalid = spec.invalid
         self._value_map = spec.value_map
@@ -365,10 +337,7 @@ class ZeekrSensor(ZeekrVehicleEntity, SensorEntity):
     @property
     def native_value(self) -> Any:
         """Return the current provider field in a Home Assistant-compatible type."""
-        if self._prefer_v2:
-            value = status_value(self.vehicle_data, self._path)
-        else:
-            value = value_at(self.vehicle_data, self._path)
+        value = value_at(self.vehicle_data, self._path)
         if self._numeric:
             number = numeric_value(value)
             if number is not None and number in self._invalid:
@@ -387,7 +356,7 @@ class ZeekrSensor(ZeekrVehicleEntity, SensorEntity):
 
 
 class ZeekrLastUpdateSensor(ZeekrVehicleEntity, SensorEntity):
-    """Timestamp of the vehicle's last successful cloud upload (top-level updateTime).
+    """Timestamp of the vehicle's last successful cloud upload (``updateTime``).
 
     This is the honest data-freshness signal — unlike Home Assistant's own poll
     time it reflects when the car last reached the cloud. During GPS jamming /
@@ -405,11 +374,7 @@ class ZeekrLastUpdateSensor(ZeekrVehicleEntity, SensorEntity):
     @property
     def native_value(self) -> Optional[datetime]:
         """Convert the millisecond epoch ``updateTime`` to an aware datetime."""
-        stamps = [
-            numeric_value(value_at(self.vehicle_data, path))
-            for path in ("updateTime", "v2.updateTime")
-        ]
-        ms = max((stamp for stamp in stamps if stamp), default=None)
+        ms = numeric_value(self.vehicle_data.get("updateTime"))
         if ms is None or ms <= 0:
             return None
         try:
@@ -447,7 +412,7 @@ class ZeekrRawSensor(ZeekrVehicleEntity, SensorEntity):
     @property
     def native_value(self) -> Any:
         """Return the raw field value as a short string, or None when absent."""
-        value = status_value(self.vehicle_data, self._path)
+        value = value_at(self.vehicle_data, self._path)
         if value is None:
             return None
         if isinstance(value, (dict, list)):

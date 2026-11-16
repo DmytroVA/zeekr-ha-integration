@@ -16,6 +16,11 @@ PLATFORMS = [
     "number",
 ]
 SCAN_INTERVAL = timedelta(seconds=60)
+# Adaptive polling: while every car sleeps (power mode off and its status
+# document's upload time unchanged for IDLE_AFTER) poll only every
+# IDLE_SCAN_INTERVAL instead of SCAN_INTERVAL.
+IDLE_SCAN_INTERVAL = timedelta(minutes=5)
+IDLE_AFTER = timedelta(minutes=10)
 
 # Remote commands: how often to ask the cloud for a command's execution result
 # and how long to wait for it (the official app gives a command 45 seconds).

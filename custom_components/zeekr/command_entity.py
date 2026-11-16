@@ -24,9 +24,7 @@ def climate_is_on(data: Dict[str, Any]) -> bool:
 
     The same flag covers normal air conditioning and rapid warming/cooling.
     """
-    value = value_at(data, "v2.climateStatus.preClimateActive")
-    if value is None:
-        value = value_at(data, "additionalVehicleStatus.climateStatus.preClimateActive")
+    value = value_at(data, "climateStatus.preClimateActive")
     return boolean_value(value) is True
 
 
@@ -80,8 +78,7 @@ class ZeekrCommandEntity(ZeekrVehicleEntity):
     def _document_stamp(self) -> Any:
         """Return the status document's upload time, used to tell documents apart."""
         data = self.vehicle_data
-        stamp = value_at(data, "v2.updateTime")
-        return stamp if stamp not in (None, "") else value_at(data, "updateTime")
+        return data.get("updateTime")
 
     def _set_pending(self, target: Any) -> None:
         """Hold a commanded value and restart the confirmation count."""

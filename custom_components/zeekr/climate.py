@@ -21,7 +21,7 @@ from .command_entity import (
 )
 from .const import MAX_AC_TEMP, MIN_AC_TEMP
 from .coordinator import RESTORED_KEYS, ZeekrRuntimeData
-from .entity import numeric_value, status_value
+from .entity import numeric_value, value_at
 
 # Home Assistant 2026.11 renamed the climate temperature properties to native_*
 # (the old names stop working in 2027.11). Older cores only know the old names,
@@ -85,8 +85,8 @@ class ZeekrClimate(ZeekrCommandEntity, RestoreEntity, ClimateEntity):
     def _cabin_temperature(self) -> Optional[float]:
         """Return the cabin temperature in degrees Celsius."""
         return numeric_value(
-            status_value(
-                self.vehicle_data, "additionalVehicleStatus.climateStatus.interiorTemp"
+            value_at(
+                self.vehicle_data, "climateStatus.interiorTemp"
             )
         )
 

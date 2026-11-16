@@ -62,9 +62,6 @@
       "odometer": {
         "name": "Одометр"
       },
-      "main_battery_voltage": {
-        "name": "Напруга 12 В акумулятора"
-      },
       "average_power_consumption": {
         "name": "Середня витрата енергії"
       },
@@ -81,9 +78,6 @@
           "released": "Відпущено",
           "engaged": "Задіяно"
         }
-      },
-      "exterior_temperature": {
-        "name": "Температура ззовні"
       },
       "speed": {
         "name": "Швидкість"
@@ -126,9 +120,6 @@
       }
     },
     "binary_sensor": {
-      "charging": {
-        "name": "Заряджання"
-      },
       "hv_battery_optimization": {
         "name": "Оптимізація тягової батареї"
       },
@@ -167,6 +158,9 @@
       },
       "park_comfort": {
         "name": "Режим відпочинку"
+      },
+      "active": {
+        "name": "Авто активне"
       },
       "gps_spoofed": {
         "name": "Підміна GPS"

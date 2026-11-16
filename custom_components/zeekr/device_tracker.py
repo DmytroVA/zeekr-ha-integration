@@ -10,7 +10,7 @@ from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from homeassistant.helpers.restore_state import RestoreEntity
 
 from .coordinator import ZeekrRuntimeData
-from .entity import ZeekrVehicleEntity, boolean_value, has_v2, numeric_value, value_at
+from .entity import ZeekrVehicleEntity, boolean_value, numeric_value, value_at
 
 
 class ZeekrTracker(ZeekrVehicleEntity, TrackerEntity, RestoreEntity):
@@ -36,11 +36,8 @@ class ZeekrTracker(ZeekrVehicleEntity, TrackerEntity, RestoreEntity):
 
     def _position(self) -> Dict[str, Any]:
         """Return the current position sub-object, or an empty mapping."""
-        if has_v2(self.vehicle_data):
-            position = value_at(self.vehicle_data, "v2.basic.position")
-            if isinstance(position, dict) and position.get("latitude") not in (None, ""):
-                return position
-        return self.vehicle_data.get("basicVehicleStatus", {}).get("position", {}) or {}
+        position = value_at(self.vehicle_data, "basic.position")
+        return position if isinstance(position, dict) else {}
 
     def _trusted(self) -> bool:
         """True only when the vehicle marks its own GPS fix trustworthy."""
@@ -87,14 +84,11 @@ class ZeekrTracker(ZeekrVehicleEntity, TrackerEntity, RestoreEntity):
     @property
     def extra_state_attributes(self) -> Dict[str, Any]:
         """Expose battery, speed, odometer, and GPS-trust on the location entity."""
-        basic = self.vehicle_data.get("basicVehicleStatus", {})
-        additional = self.vehicle_data.get("additionalVehicleStatus", {})
-        electric = additional.get("electricVehicleStatus", {})
-        maintenance = additional.get("maintenanceStatus", {})
+        data = self.vehicle_data
         return {
-            "battery": electric.get("chargeLevel"),
-            "speed": basic.get("speed"),
-            "odometer": maintenance.get("odometer"),
+            "battery": value_at(data, "electricVehicleStatus.chargeLevel"),
+            "speed": value_at(data, "basic.speed"),
+            "odometer": value_at(data, "additionalMaintenanceStatus.odometer"),
             "gps_trusted": self._trusted(),
         }
 

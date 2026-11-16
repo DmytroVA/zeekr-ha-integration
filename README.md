@@ -36,15 +36,21 @@ integration and your phone app don't evict each other.
 
 ## How data freshness works (important)
 
-The integration reads two versions of the status document every poll: **v2.0**,
-which the official app uses (refreshed within seconds of a change, carries sentry
-state, seat heating, lights …) and **v1.0** for the few fields v2.0 lacks (12 V
-battery voltage). Typed entities prefer v2.0. If the v2.0 request fails on a poll,
-the last v2.0 document is kept, so entities that only v2.0 reports (sentry, seats,
-steering wheel, defrost, windows …) hold their state instead of flipping to off.
+The integration reads only the **v2.0** status document — the one the official app
+uses (refreshed within seconds of a change; carries sentry state, seat heating,
+lights …). Since 1.9.0 the older v1.0 document is not requested, and fields only
+v1.0 had are not exposed: the *Charging* binary sensor (`isCharging`), the 12 V
+battery voltage, the exterior temperature and ~100 raw sensors were removed.
+
+**Adaptive polling.** While the car is awake — `binary_sensor.*_active` is on
+(`temStatus.powerMode = 1`) or its `updateTime` changed within the last 10 minutes —
+the integration polls every 60 seconds. Once the car has been asleep for 10 minutes
+it polls every 5 minutes. A remote command or the *Refresh status* button polls at
+once and switches back to 60-second polling, so a command's effect shows up as
+quickly as before.
 
 The status document carries the car's own **`updateTime`** (last successful upload
-to the cloud). The integration polls every 60 seconds, but it only ever receives the
+to the cloud). The integration polls every 60 seconds (5 minutes while the car sleeps), but it only ever receives the
 document the car last uploaded — so values can be stale even though HA is polling
 fine. The **`sensor.*_last_cloud_update`** entity shows that true timestamp; trust
 it over Home Assistant's own "last changed".
@@ -92,8 +98,8 @@ renamed yourself stay as you set them. Raw sensors keep their English field name
 
 | Platform | Entities |
 |---|---|
-| `sensor` | 27 typed (battery, range, interior temp, tyre pressures/temps, odometer, distances/days to service, 12 V voltage, charge current/voltage, average consumption (the car resets it periodically, usually after charging), PM2.5, speed, time-to-full, trip meters, …; *exterior temperature* is disabled by default: the cloud leaves `exteriorTemp` empty), `last_cloud_update`, **+ ~169 raw diagnostic sensors (disabled by default) covering every remaining field in the app's status model** (BasicVo, ElectricVehicleStatusVo, ClimateStatusVo, DrivingSafetyStatusVo, AdditionalMaintenanceStatusVo, RunningStatusVo, PollutionStatusVo, DrivingBehaviourStatusVo, BigdataVehicleStatusVo, PositionVo, mainBatteryStatus). Nested/JSON fields (`storageBoxStatus`, `fragItems`, …) are shown as compact JSON. |
-| `binary_sensor` | charging, plugged-in, 4 doors, trunk, hood, HV-battery optimization, low/high beam, hazard lights, park comfort mode, **gps_spoofed** |
+| `sensor` | 25 typed (battery, range, interior temp, tyre pressures/temps, odometer, distances/days to service, charge current/voltage, average consumption (the car resets it periodically, usually after charging), PM2.5, speed, engine status (raw v2.0 code), time-to-full, trip meters, …), `last_cloud_update`, **+ ~70 raw diagnostic sensors (disabled by default) for the remaining fields of the app's status model that the v2.0 document carries**. Nested/JSON fields (`storageBoxStatus`, `fragItems`, …) are shown as compact JSON. |
+| `binary_sensor` | plugged-in, 4 doors, trunk, hood, HV-battery optimization, low/high beam, hazard lights, park comfort mode, **active** (car awake), **gps_spoofed** |
 | `device_tracker` | location (trusted-position holding) |
 | `climate` | **cabin climate**: on/off, target temperature (kept across restarts) |
 | `switch` | **sentry mode**, **defrost**, **cabin ventilation**, **steering-wheel heating**; *air conditioning* (on/off shortcut for the climate, disabled by default) |

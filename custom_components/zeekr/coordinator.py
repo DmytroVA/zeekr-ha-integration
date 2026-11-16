@@ -4,6 +4,7 @@ import asyncio
 from dataclasses import dataclass, field
 import json
 import logging
+import time
 from typing import Any, Dict, Iterator, Optional, Set, Tuple
 
 from homeassistant.config_entries import ConfigEntry
@@ -13,7 +14,14 @@ from homeassistant.helpers.storage import Store
 from homeassistant.helpers.update_coordinator import DataUpdateCoordinator, UpdateFailed
 
 from .api import ZeekrApi, ZeekrApiError, ZeekrAuthError
-from .const import DEFAULT_AC_DURATION_MIN, DEFAULT_AC_TEMP, DOMAIN, SCAN_INTERVAL
+from .const import (
+    DEFAULT_AC_DURATION_MIN,
+    DEFAULT_AC_TEMP,
+    DOMAIN,
+    IDLE_AFTER,
+    IDLE_SCAN_INTERVAL,
+    SCAN_INTERVAL,
+)
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -26,6 +34,8 @@ _EMPTY_VALUES = ("", "None", "null", "[]", "{}")
 # restart. The number helpers restore with priority; the climate entity restores
 # the temperature only when its number did not (it is disabled by default).
 RESTORED_KEYS = "restored"
+# Status field that is "1" while the car is powered up (not asleep).
+POWER_MODE_PATH = "temStatus.powerMode"
 
 
 def _flatten(data: Dict[str, Any], prefix: str = "") -> Iterator[Tuple[str, Any]]:
@@ -36,6 +46,19 @@ def _flatten(data: Dict[str, Any], prefix: str = "") -> Iterator[Tuple[str, Any]
             yield from _flatten(value, path)
         else:
             yield path, value
+
+
+def _v2_only_observations(fields: Dict[str, Any]) -> Dict[str, Any]:
+    """Keep only v2.0 fields of summaries recorded before 1.9.0.
+
+    Up to 1.8.x the status held the v1.0 document with v2.0 nested under ``v2``,
+    so paths were ``v2.<path>`` or v1.0 paths. Now the status is the v2.0
+    document itself: v1.0 paths are dropped and the ``v2.`` prefix removed.
+    Already migrated summaries have no ``v2.`` paths and are returned as is.
+    """
+    if not any(path.startswith("v2.") for path in fields):
+        return fields
+    return {path[3:]: record for path, record in fields.items() if path.startswith("v2.")}
 
 
 class FieldObserver:
@@ -62,7 +85,9 @@ class FieldObserver:
         """Load the summaries collected before the last restart."""
         stored = await self._store.async_load()
         if isinstance(stored, dict):
-            self.data = stored
+            self.data = {
+                vin: _v2_only_observations(fields) for vin, fields in stored.items()
+            }
 
     async def async_remove(self) -> None:
         """Delete the stored summaries when the integration is removed."""
@@ -141,31 +166,42 @@ class VehicleStatusCoordinator(DataUpdateCoordinator[Dict[str, Dict[str, Any]]])
         self.api = api
         self.observer = FieldObserver(hass)
         self._failed_vins: Set[str] = set()
-        self._missing_v2_vins: Set[str] = set()
+        # Per VIN: last seen upload stamp and the monotonic time it last changed.
+        self._stamps: Dict[str, Tuple[Any, float]] = {}
 
-    def _keep_v2(self, vin: str, status: Dict[str, Any]) -> Dict[str, Any]:
-        """Carry the previous v2.0 document over when this poll did not get one.
+    def _track_activity(self, vin: str, status: Dict[str, Any]) -> None:
+        """Remember when the car's status document last changed its upload time."""
+        stamp = status.get("updateTime")
+        seen = self._stamps.get(vin)
+        if seen is None or seen[0] != stamp:
+            self._stamps[vin] = (stamp, time.monotonic())
 
-        The v2.0 request is best effort: when it fails the status holds only
-        v1.0, and entities that read only ``v2.*`` (sentry, defrost, seats,
-        steering wheel, windows ...) would flip to off/closed for one cycle.
-        Keeping the last known v2.0 document leaves their state unchanged.
-        """
-        if "v2" in status:
-            if vin in self._missing_v2_vins:
-                self._missing_v2_vins.discard(vin)
-                _LOGGER.info("Zeekr vehicle ...%s v2.0 status is back", vin[-6:])
-            return status
-        previous = (self.data or {}).get(vin, {}).get("v2")
-        if previous is None:
-            return status
-        if vin not in self._missing_v2_vins:
-            self._missing_v2_vins.add(vin)
-            _LOGGER.warning(
-                "Zeekr vehicle ...%s: v2.0 status unavailable, keeping the last one",
-                vin[-6:],
+    def _is_active(self, vin: str, status: Dict[str, Any]) -> bool:
+        """True while the car is awake: powered up or uploading recently."""
+        section, key = POWER_MODE_PATH.split(".")
+        if str((status.get(section) or {}).get(key)) == "1":
+            return True
+        seen = self._stamps.get(vin)
+        if seen is None:
+            return True
+        return time.monotonic() - seen[1] < IDLE_AFTER.total_seconds()
+
+    def _mark_active(self, vin: str) -> None:
+        """Treat the car as awake now (a command was sent or a refresh asked)."""
+        stamp = self._stamps.get(vin, (None, 0.0))[0]
+        self._stamps[vin] = (stamp, time.monotonic())
+
+    def _adapt_interval(self, data: Dict[str, Dict[str, Any]]) -> None:
+        """Poll every 60 s while any car is awake, else every IDLE_SCAN_INTERVAL."""
+        active = any(self._is_active(vin, data.get(vin, {})) for vin in self.api.vehicles)
+        interval = SCAN_INTERVAL if active else IDLE_SCAN_INTERVAL
+        if interval != self.update_interval:
+            _LOGGER.debug(
+                "Zeekr polling every %s s (%s)",
+                int(interval.total_seconds()),
+                "a vehicle is active" if active else "all vehicles idle",
             )
-        return {**status, "v2": previous}
+            self.update_interval = interval
 
     async def _async_update_data(self) -> Dict[str, Dict[str, Any]]:
         """Fetch the newest status for every configured supported vehicle.
@@ -190,21 +226,31 @@ class VehicleStatusCoordinator(DataUpdateCoordinator[Dict[str, Dict[str, Any]]])
                     )
             else:
                 self.observer.observe(vin, result[vin])
-                result[vin] = self._keep_v2(vin, result[vin])
+                self._track_activity(vin, result[vin])
                 if vin in self._failed_vins:
                     self._failed_vins.discard(vin)
                     _LOGGER.info("Zeekr vehicle ...%s is updating again", vin[-6:])
         if last_error is not None and not result:
             raise UpdateFailed("Unable to update Zeekr vehicle status") from last_error
+        # Interval for the next poll: the base class schedules it after this returns.
+        self._adapt_interval(result)
         return result
 
     async def async_refresh_vehicle(self, vin: str) -> None:
-        """Refresh one vehicle immediately and preserve the other vehicles' data."""
+        """Refresh one vehicle immediately and preserve the other vehicles' data.
+
+        Used after a command and by the refresh button: marks the car awake and
+        returns to 60 s polling, so the command's effect is picked up as quickly
+        as before even if the car was idle.
+        """
+        self._mark_active(vin)
+        self.update_interval = SCAN_INTERVAL
         status = await self.api.async_get_vehicle_status(vin)
         self.observer.observe(vin, status)
-        status = self._keep_v2(vin, status)
+        self._track_activity(vin, status)
         updated = dict(self.data or {})
         updated[vin] = status
+        # Reschedules the next poll with the 60 s interval set above.
         self.async_set_updated_data(updated)
 
 

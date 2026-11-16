@@ -62,9 +62,6 @@
       "odometer": {
         "name": "总里程"
       },
-      "main_battery_voltage": {
-        "name": "12V 蓄电池电压"
-      },
       "average_power_consumption": {
         "name": "平均电耗"
       },
@@ -81,9 +78,6 @@
           "released": "已释放",
           "engaged": "已启用"
         }
-      },
-      "exterior_temperature": {
-        "name": "车外温度"
       },
       "speed": {
         "name": "车速"
@@ -126,9 +120,6 @@
       }
     },
     "binary_sensor": {
-      "charging": {
-        "name": "充电中"
-      },
       "hv_battery_optimization": {
         "name": "动力电池优化"
       },
@@ -167,6 +158,9 @@
       },
       "park_comfort": {
         "name": "驻车舒适模式"
+      },
+      "active": {
+        "name": "车辆唤醒"
       },
       "gps_spoofed": {
         "name": "GPS 欺骗"
