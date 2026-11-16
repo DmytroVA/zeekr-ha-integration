@@ -117,6 +117,18 @@
       },
       "last_cloud_update": {
         "name": "Останнє оновлення в хмарі"
+      },
+      "v2l_voltage": {
+        "name": "Напруга V2L"
+      },
+      "v2l_current": {
+        "name": "Струм V2L"
+      },
+      "dc_charger_voltage": {
+        "name": "Напруга DC-станції"
+      },
+      "dc_charger_current": {
+        "name": "Струм DC-станції"
       }
     },
     "binary_sensor": {
@@ -164,6 +176,12 @@
       },
       "gps_spoofed": {
         "name": "Підміна GPS"
+      },
+      "turn_signal_left": {
+        "name": "Лівий поворотник"
+      },
+      "turn_signal_right": {
+        "name": "Правий поворотник"
       }
     },
     "button": {

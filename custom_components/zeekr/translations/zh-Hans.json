@@ -117,6 +117,18 @@
       },
       "last_cloud_update": {
         "name": "云端最后更新"
+      },
+      "v2l_voltage": {
+        "name": "V2L 放电电压"
+      },
+      "v2l_current": {
+        "name": "V2L 放电电流"
+      },
+      "dc_charger_voltage": {
+        "name": "直流充电桩电压"
+      },
+      "dc_charger_current": {
+        "name": "直流充电桩电流"
       }
     },
     "binary_sensor": {
@@ -164,6 +176,12 @@
       },
       "gps_spoofed": {
         "name": "GPS 欺骗"
+      },
+      "turn_signal_left": {
+        "name": "左转向灯"
+      },
+      "turn_signal_right": {
+        "name": "右转向灯"
       }
     },
     "button": {

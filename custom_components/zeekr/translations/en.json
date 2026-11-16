@@ -117,6 +117,18 @@
       },
       "last_cloud_update": {
         "name": "Last Cloud Update"
+      },
+      "v2l_voltage": {
+        "name": "V2L Voltage"
+      },
+      "v2l_current": {
+        "name": "V2L Current"
+      },
+      "dc_charger_voltage": {
+        "name": "DC Charger Voltage"
+      },
+      "dc_charger_current": {
+        "name": "DC Charger Current"
       }
     },
     "binary_sensor": {
@@ -164,6 +176,12 @@
       },
       "gps_spoofed": {
         "name": "GPS Spoofed"
+      },
+      "turn_signal_left": {
+        "name": "Left Turn Signal"
+      },
+      "turn_signal_right": {
+        "name": "Right Turn Signal"
       }
     },
     "button": {

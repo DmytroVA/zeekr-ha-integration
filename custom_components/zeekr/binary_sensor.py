@@ -114,6 +114,24 @@ BINARY_SENSOR_FIELDS: List[Tuple[BinarySensorEntityDescription, str]] = [
     ),
     (
         BinarySensorEntityDescription(
+            key="turn_signal_left",
+            translation_key="turn_signal_left",
+            device_class=BinarySensorDeviceClass.LIGHT,
+            icon="mdi:arrow-left-bold",
+        ),
+        "runningStatus.trunIndrLe",
+    ),
+    (
+        BinarySensorEntityDescription(
+            key="turn_signal_right",
+            translation_key="turn_signal_right",
+            device_class=BinarySensorDeviceClass.LIGHT,
+            icon="mdi:arrow-right-bold",
+        ),
+        "runningStatus.trunIndrRi",
+    ),
+    (
+        BinarySensorEntityDescription(
             key="park_comfort", translation_key="park_comfort", icon="mdi:sofa"
         ),
         "basic.parkComfortState",

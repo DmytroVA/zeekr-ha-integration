@@ -1,5 +1,5 @@
-"""Raw status fields: every field of the app's status model that the v2.0
-status document actually carries (checked against the live document).
+"""Raw status fields: every field of the v2.0 status document without a typed
+entity (checked against the live document and two days of field observations).
 
 Paths are relative to the v2.0 document. Keys are part of the entities'
 unique_ids and must not change.
@@ -82,6 +82,7 @@ RAW_FIELDS = [
     ('sf_engine_hood_open_status', 'drivingSafetyStatus.engineHoodOpenStatus', 'Engine Hood Open Status'),
     ('sf_trunk_lock_status', 'drivingSafetyStatus.trunkLockStatus', 'Trunk Lock Status'),
     ('sf_trunk_open_status', 'drivingSafetyStatus.trunkOpenStatus', 'Trunk Open Status'),
+    ('mt_washer_fluid_level_status', 'additionalMaintenanceStatus.washerFluidLevelStatus', 'Washer Fluid Level Status'),
     ('mt_brake_fluid_level_status', 'additionalMaintenanceStatus.brakeFluidLevelStatus', 'Brake Fluid Level Status'),
     ('mt_days_to_service', 'additionalMaintenanceStatus.daysToService', 'Days To Service'),
     ('mt_distance_to_service', 'additionalMaintenanceStatus.distanceToService', 'Distance To Service'),

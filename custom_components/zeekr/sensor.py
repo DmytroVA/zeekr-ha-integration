@@ -232,6 +232,51 @@ SENSOR_FIELDS: List[ZeekrSensorSpec] = [
         "electricVehicleStatus.timeToFullyCharged",
         invalid=(2047,),
     ),
+    # V2L (vehicle-to-load) discharge: voltage at the car's outlet while it powers
+    # external loads, 0 otherwise.
+    ZeekrSensorSpec(
+        SensorEntityDescription(
+            key="v2l_voltage",
+            translation_key="v2l_voltage",
+            native_unit_of_measurement=UnitOfElectricPotential.VOLT,
+            device_class=SensorDeviceClass.VOLTAGE,
+            state_class=SensorStateClass.MEASUREMENT,
+        ),
+        "electricVehicleStatus.disChargeUAct",
+    ),
+    ZeekrSensorSpec(
+        SensorEntityDescription(
+            key="v2l_current",
+            translation_key="v2l_current",
+            native_unit_of_measurement=UnitOfElectricCurrent.AMPERE,
+            device_class=SensorDeviceClass.CURRENT,
+            state_class=SensorStateClass.MEASUREMENT,
+        ),
+        "electricVehicleStatus.disChargeIAct",
+    ),
+    # DC fast charging: voltage and current reported by the charging station.
+    ZeekrSensorSpec(
+        SensorEntityDescription(
+            key="dc_charger_voltage",
+            translation_key="dc_charger_voltage",
+            native_unit_of_measurement=UnitOfElectricPotential.VOLT,
+            device_class=SensorDeviceClass.VOLTAGE,
+            state_class=SensorStateClass.MEASUREMENT,
+            entity_category=EntityCategory.DIAGNOSTIC,
+        ),
+        "electricVehicleStatus.dcChargePileUAct",
+    ),
+    ZeekrSensorSpec(
+        SensorEntityDescription(
+            key="dc_charger_current",
+            translation_key="dc_charger_current",
+            native_unit_of_measurement=UnitOfElectricCurrent.AMPERE,
+            device_class=SensorDeviceClass.CURRENT,
+            state_class=SensorStateClass.MEASUREMENT,
+            entity_category=EntityCategory.DIAGNOSTIC,
+        ),
+        "electricVehicleStatus.dcChargePileIAct",
+    ),
     ZeekrSensorSpec(
         SensorEntityDescription(
             key="tire_temp_front_left",

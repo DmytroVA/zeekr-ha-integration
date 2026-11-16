@@ -98,8 +98,8 @@ renamed yourself stay as you set them. Raw sensors keep their English field name
 
 | Platform | Entities |
 |---|---|
-| `sensor` | 25 typed (battery, range, interior temp, tyre pressures/temps, odometer, distances/days to service, charge current/voltage, average consumption (the car resets it periodically, usually after charging), PM2.5, speed, engine status (raw v2.0 code), time-to-full, trip meters, …), `last_cloud_update`, **+ ~70 raw diagnostic sensors (disabled by default) for the remaining fields of the app's status model that the v2.0 document carries**. Nested/JSON fields (`storageBoxStatus`, `fragItems`, …) are shown as compact JSON. |
-| `binary_sensor` | plugged-in, 4 doors, trunk, hood, HV-battery optimization, low/high beam, hazard lights, park comfort mode, **active** (car awake), **gps_spoofed** |
+| `sensor` | 29 typed (battery, range, interior temp, tyre pressures/temps, odometer, distances/days to service, charge current/voltage, **V2L discharge voltage/current**, DC charger voltage/current, average consumption (the car resets it periodically, usually after charging), PM2.5, speed, engine status (raw v2.0 code), time-to-full, trip meters, …), `last_cloud_update`, **+ ~70 raw diagnostic sensors (disabled by default) for every remaining field of the v2.0 document** — every field the cloud sends has an entity. Nested/JSON fields (`storageBoxStatus`, `fragItems`, …) are shown as compact JSON. |
+| `binary_sensor` | plugged-in, 4 doors, trunk, hood, HV-battery optimization, low/high beam, hazard lights, left/right turn signals, park comfort mode, **active** (car awake), **gps_spoofed** |
 | `device_tracker` | location (trusted-position holding) |
 | `climate` | **cabin climate**: on/off, target temperature (kept across restarts) |
 | `switch` | **sentry mode**, **defrost**, **cabin ventilation**, **steering-wheel heating**; *air conditioning* (on/off shortcut for the climate, disabled by default) |
