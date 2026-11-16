@@ -73,6 +73,8 @@ class ZeekrAcSwitch(ZeekrCommandSwitch):
     """
 
     _attr_translation_key = "air_conditioning"
+    # Duplicates the climate entity's on/off.
+    _attr_entity_registry_enabled_default = False
 
     def __init__(self, runtime: ZeekrRuntimeData, vin: str) -> None:
         """Bind the AC switch to one vehicle and the shared climate settings."""

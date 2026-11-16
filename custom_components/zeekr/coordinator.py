@@ -22,6 +22,10 @@ _OBSERVATION_SAVE_DELAY = 300
 _OBSERVATION_MAX_SAMPLES = 8
 _OBSERVATION_MAX_VALUE_LEN = 80
 _EMPTY_VALUES = ("", "None", "null", "[]", "{}")
+# Key in a vehicle's climate settings: the setting keys already restored after a
+# restart. The number helpers restore with priority; the climate entity restores
+# the temperature only when its number did not (it is disabled by default).
+RESTORED_KEYS = "restored"
 
 
 def _flatten(data: Dict[str, Any], prefix: str = "") -> Iterator[Tuple[str, Any]]:

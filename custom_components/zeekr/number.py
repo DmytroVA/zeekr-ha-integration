@@ -14,7 +14,7 @@ from .const import (
     MAX_AC_TEMP,
     MIN_AC_TEMP,
 )
-from .coordinator import ZeekrRuntimeData
+from .coordinator import RESTORED_KEYS, ZeekrRuntimeData
 from .entity import ZeekrVehicleEntity
 
 
@@ -53,15 +53,17 @@ class _ZeekrClimateNumber(ZeekrVehicleEntity, RestoreNumber, NumberEntity):
         await super().async_added_to_hass()
         last = await self.async_get_last_number_data()
         if last is not None and last.native_value is not None:
-            self._runtime.climate_setting(self.vin)[self._setting_key] = (
-                last.native_value
-            )
+            setting = self._runtime.climate_setting(self.vin)
+            setting[self._setting_key] = last.native_value
+            setting.setdefault(RESTORED_KEYS, set()).add(self._setting_key)
 
 
 class ZeekrAcTemperatureNumber(_ZeekrClimateNumber):
     """Target cabin temperature used by the experimental AC start command."""
 
     _attr_translation_key = "ac_target_temperature"
+    # Duplicates the climate entity's target temperature (which it restores itself).
+    _attr_entity_registry_enabled_default = False
     _attr_native_unit_of_measurement = UnitOfTemperature.CELSIUS
     _attr_native_min_value = MIN_AC_TEMP
     _attr_native_max_value = MAX_AC_TEMP

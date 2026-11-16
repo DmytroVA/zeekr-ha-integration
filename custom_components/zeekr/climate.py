@@ -11,6 +11,7 @@ from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import ATTR_TEMPERATURE, UnitOfTemperature
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
+from homeassistant.helpers.restore_state import RestoreEntity
 
 from .command_entity import (
     ZeekrCommandEntity,
@@ -19,7 +20,7 @@ from .command_entity import (
     climate_stop_parameters,
 )
 from .const import MAX_AC_TEMP, MIN_AC_TEMP
-from .coordinator import ZeekrRuntimeData
+from .coordinator import RESTORED_KEYS, ZeekrRuntimeData
 from .entity import numeric_value, status_value
 
 # Home Assistant 2026.11 renamed the climate temperature properties to native_*
@@ -28,11 +29,15 @@ from .entity import numeric_value, status_value
 _NATIVE_TEMPERATURE = hasattr(ClimateEntity, "native_temperature_unit")
 
 
-class ZeekrClimate(ZeekrCommandEntity, ClimateEntity):
+class ZeekrClimate(ZeekrCommandEntity, RestoreEntity, ClimateEntity):
     """Remote pre-conditioning of the cabin at a target temperature.
 
     Rapid warming and rapid cooling are separate one-press buttons; the car
     reports all three simply as "pre-conditioning is running".
+
+    The car does not report the target, so it is restored from the last state
+    after a restart (the AC temperature number, disabled by default, does the
+    same when enabled).
     """
 
     _attr_translation_key = "climate"
@@ -51,6 +56,22 @@ class ZeekrClimate(ZeekrCommandEntity, ClimateEntity):
         """Bind the thermostat to one vehicle and the shared climate settings."""
         super().__init__(runtime, vin)
         self._attr_unique_id = f"{vin}_climate"
+
+    async def async_added_to_hass(self) -> None:
+        """Restore the target temperature unless the number already did."""
+        await super().async_added_to_hass()
+        last = await self.async_get_last_state()
+        if last is None:
+            return
+        restored = numeric_value(last.attributes.get(ATTR_TEMPERATURE))
+        restored_keys = self._setting.setdefault(RESTORED_KEYS, set())
+        if (
+            restored is not None
+            and MIN_AC_TEMP <= restored <= MAX_AC_TEMP
+            and "temp" not in restored_keys
+        ):
+            self._setting["temp"] = float(restored)
+            restored_keys.add("temp")
 
     @property
     def _setting(self) -> dict:

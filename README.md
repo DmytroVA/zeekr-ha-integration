@@ -95,12 +95,12 @@ renamed yourself stay as you set them. Raw sensors keep their English field name
 | `sensor` | 27 typed (battery, range, interior temp, tyre pressures/temps, odometer, distances/days to service, 12 V voltage, charge current/voltage, average consumption (the car resets it periodically, usually after charging), PM2.5, speed, time-to-full, trip meters, …; *exterior temperature* is disabled by default: the cloud leaves `exteriorTemp` empty), `last_cloud_update`, **+ ~169 raw diagnostic sensors (disabled by default) covering every remaining field in the app's status model** (BasicVo, ElectricVehicleStatusVo, ClimateStatusVo, DrivingSafetyStatusVo, AdditionalMaintenanceStatusVo, RunningStatusVo, PollutionStatusVo, DrivingBehaviourStatusVo, BigdataVehicleStatusVo, PositionVo, mainBatteryStatus). Nested/JSON fields (`storageBoxStatus`, `fragItems`, …) are shown as compact JSON. |
 | `binary_sensor` | charging, plugged-in, 4 doors, trunk, hood, HV-battery optimization, low/high beam, hazard lights, park comfort mode, **gps_spoofed** |
 | `device_tracker` | location (trusted-position holding) |
-| `climate` | **cabin climate**: on/off, target temperature |
-| `switch` | **sentry mode**, **air conditioning** (on/off shortcut for the climate), **defrost**, **cabin ventilation**, **steering-wheel heating** |
+| `climate` | **cabin climate**: on/off, target temperature (kept across restarts) |
+| `switch` | **sentry mode**, **defrost**, **cabin ventilation**, **steering-wheel heating**; *air conditioning* (on/off shortcut for the climate, disabled by default) |
 | `select` | **seat heating** and **seat ventilation** level (`off`, `low`, `medium`, `high`) for driver, passenger and both rear seats; **windows** (`closed`, `vent`, `open`) |
 | `lock` | **doors** (central lock; also locks the tailgate) |
 | `button` | **refresh**, **rapid warming**, **rapid cooling**, **unlock trunk**; **flash lights**, **flash lights & horn** *(not yet verified, disabled by default)* |
-| `number` | AC target temperature, run time in 5-minute steps (local settings shared by the climate controls) |
+| `number` | run time in 5-minute steps; *AC target temperature* (duplicates the climate target, disabled by default) — local settings shared by the climate controls |
 
 Switches and selectors that depend on optional equipment are only created when the car reports the matching status field. Enable the experimental buttons from the device page if you want to try them.
 
