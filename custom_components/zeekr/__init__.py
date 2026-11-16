@@ -31,13 +31,29 @@ from .coordinator import (
     start_reauth,
 )
 
+# Must match the import in www/zeekr-sentinel-card.js.
+RTC_SDK_FILE = "volcengine-rtc-4.69.2.esm.min.js"
+
 
 async def async_setup(hass: HomeAssistant, config: Dict[str, Any]) -> bool:
     """Register static frontend assets and authenticated dashboard commands."""
     hass.data.setdefault(DOMAIN, {})
-    card_path = Path(__file__).parent / "www" / "zeekr-sentinel-card.js"
+    www = Path(__file__).parent / "www"
     await hass.http.async_register_static_paths(
-        [StaticPathConfig("/api/zeekr/zeekr-sentinel-card.js", str(card_path), False)]
+        [
+            StaticPathConfig(
+                "/api/zeekr/zeekr-sentinel-card.js",
+                str(www / "zeekr-sentinel-card.js"),
+                False,
+            ),
+            # Bundled Volcengine RTC SDK (npm @volcengine/rtc, unchanged); the
+            # versioned file name makes long-lived browser caching safe.
+            StaticPathConfig(
+                f"/api/zeekr/{RTC_SDK_FILE}",
+                str(www / "vendor" / RTC_SDK_FILE),
+                True,
+            ),
+        ]
     )
     websocket_api.async_register_command(hass, websocket_list_vehicles)
     websocket_api.async_register_command(hass, websocket_start_sentinel)

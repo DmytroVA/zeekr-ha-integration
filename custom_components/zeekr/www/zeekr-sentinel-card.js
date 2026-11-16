@@ -134,7 +134,7 @@ class ZeekrSentinelCard extends HTMLElement {
         vin: this._selectedVin,
       });
       const { default: VERTC, MediaType, StreamIndex } = await import(
-        "https://unpkg.com/@volcengine/rtc@4.69.2/index.esm.min.js"
+        "/api/zeekr/volcengine-rtc-4.69.2.esm.min.js"
       );
       this._streamIndex = StreamIndex;
       this._mediaType = MediaType;

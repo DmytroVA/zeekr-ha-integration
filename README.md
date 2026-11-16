@@ -177,7 +177,9 @@ All services take the `vin`, because one account can hold several vehicles; each
 vehicle is its own device and a poll failure of one car does not affect the others.
 
 The sentinel live-video card (`/api/zeekr/zeekr-sentinel-card.js`) can only open a
-stream for Home Assistant **administrator** users.
+stream for Home Assistant **administrator** users. It loads the Volcengine RTC SDK
+(`@volcengine/rtc` 4.69.2, BSD-3-Clause, bundled unchanged in `www/vendor/`) from
+Home Assistant itself, not from a CDN.
 
 ## Credits
 
