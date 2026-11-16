@@ -35,7 +35,7 @@ class ZeekrClimate(ZeekrCommandEntity, ClimateEntity):
     reports all three simply as "pre-conditioning is running".
     """
 
-    _attr_name = "Climate"
+    _attr_translation_key = "climate"
     _attr_hvac_modes = [HVACMode.OFF, HVACMode.HEAT_COOL]
     _attr_min_temp = MIN_AC_TEMP
     _attr_max_temp = MAX_AC_TEMP

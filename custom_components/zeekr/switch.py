@@ -29,7 +29,7 @@ class ZeekrCommandSwitch(ZeekrCommandEntity, SwitchEntity):
 class ZeekrSentrySwitch(ZeekrCommandSwitch):
     """Control the RSM sentry service and reflect the reported sentry state."""
 
-    _attr_name = "Sentry Mode"
+    _attr_translation_key = "sentry_mode"
 
     def __init__(self, runtime: ZeekrRuntimeData, vin: str) -> None:
         """Bind the RSM control to one vehicle."""
@@ -72,7 +72,7 @@ class ZeekrAcSwitch(ZeekrCommandSwitch):
     Target temperature and run time come from the shared local settings.
     """
 
-    _attr_name = "Air Conditioning"
+    _attr_translation_key = "air_conditioning"
 
     def __init__(self, runtime: ZeekrRuntimeData, vin: str) -> None:
         """Bind the AC switch to one vehicle and the shared climate settings."""
@@ -107,7 +107,7 @@ class ZeekrAcSwitch(ZeekrCommandSwitch):
 class ZeekrDefrostSwitch(ZeekrCommandSwitch):
     """Windscreen defrost (ZAF ``DF``); state from ``climateStatus.defrost``."""
 
-    _attr_name = "Defrost"
+    _attr_translation_key = "defrost"
     _attr_icon = "mdi:car-defrost-front"
     STATE_PATH = "v2.climateStatus.defrost"
 
@@ -146,7 +146,7 @@ class ZeekrDefrostSwitch(ZeekrCommandSwitch):
 class ZeekrCabinVentSwitch(ZeekrCommandSwitch):
     """Cabin ventilation (RCC); state from ``climateStatus.airBlowerActive``."""
 
-    _attr_name = "Cabin Ventilation"
+    _attr_translation_key = "cabin_ventilation"
     _attr_icon = "mdi:fan"
     STATE_PATH = "v2.climateStatus.airBlowerActive"
     _PARAMETERS = [
@@ -186,7 +186,7 @@ class ZeekrCabinVentSwitch(ZeekrCommandSwitch):
 class ZeekrSteeringWheelHeatSwitch(ZeekrCommandSwitch):
     """Steering-wheel heating (ZAF ``SW``); ``steerWhlHeatingSts`` 1 = on."""
 
-    _attr_name = "Steering Wheel Heating"
+    _attr_translation_key = "steering_wheel_heating"
     _attr_icon = "mdi:steering"
     STATE_PATH = "v2.climateStatus.steerWhlHeatingSts"
 

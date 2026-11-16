@@ -32,21 +32,232 @@
   },
   "entity": {
     "sensor": {
+      "distance_to_empty": {
+        "name": "Запас ходу"
+      },
+      "battery": {
+        "name": "Заряд батареї"
+      },
+      "interior_temperature": {
+        "name": "Температура в салоні"
+      },
+      "engine_status": {
+        "name": "Стан двигуна"
+      },
+      "tire_pressure_front_left": {
+        "name": "Тиск у шині передній лівій"
+      },
+      "tire_pressure_front_right": {
+        "name": "Тиск у шині передній правій"
+      },
+      "tire_pressure_rear_left": {
+        "name": "Тиск у шині задній лівій"
+      },
+      "tire_pressure_rear_right": {
+        "name": "Тиск у шині задній правій"
+      },
+      "distance_to_service": {
+        "name": "Пробіг до ТО"
+      },
+      "odometer": {
+        "name": "Одометр"
+      },
+      "main_battery_voltage": {
+        "name": "Напруга 12 В акумулятора"
+      },
+      "average_power_consumption": {
+        "name": "Середня витрата енергії"
+      },
       "central_locking_status": {
+        "name": "Центральний замок",
         "state": {
           "unlocked": "Відімкнено",
           "locked": "Замкнено"
         }
       },
       "electric_park_brake_status": {
+        "name": "Електронний ручник",
         "state": {
           "released": "Відпущено",
           "engaged": "Задіяно"
         }
+      },
+      "exterior_temperature": {
+        "name": "Температура ззовні"
+      },
+      "speed": {
+        "name": "Швидкість"
+      },
+      "charge_current": {
+        "name": "Струм заряджання"
+      },
+      "charge_voltage": {
+        "name": "Напруга заряджання"
+      },
+      "time_to_full_charge": {
+        "name": "Час до повного заряду"
+      },
+      "tire_temp_front_left": {
+        "name": "Температура шини передньої лівої"
+      },
+      "tire_temp_front_right": {
+        "name": "Температура шини передньої правої"
+      },
+      "tire_temp_rear_left": {
+        "name": "Температура шини задньої лівої"
+      },
+      "tire_temp_rear_right": {
+        "name": "Температура шини задньої правої"
+      },
+      "trip_meter_1": {
+        "name": "Лічильник поїздки 1"
+      },
+      "trip_meter_2": {
+        "name": "Лічильник поїздки 2"
+      },
+      "days_to_service": {
+        "name": "Днів до ТО"
+      },
+      "interior_pm25": {
+        "name": "PM2.5 у салоні"
+      },
+      "last_cloud_update": {
+        "name": "Останнє оновлення в хмарі"
+      }
+    },
+    "binary_sensor": {
+      "charging": {
+        "name": "Заряджання"
+      },
+      "hv_battery_optimization": {
+        "name": "Оптимізація тягової батареї"
+      },
+      "plugged_in": {
+        "name": "Кабель підключено"
+      },
+      "door_front_left": {
+        "name": "Двері передні ліві"
+      },
+      "door_front_right": {
+        "name": "Двері передні праві"
+      },
+      "door_rear_left": {
+        "name": "Двері задні ліві"
+      },
+      "door_rear_right": {
+        "name": "Двері задні праві"
+      },
+      "trunk": {
+        "name": "Багажник"
+      },
+      "hood": {
+        "name": "Капот"
+      },
+      "trunk_lock": {
+        "name": "Замок багажника"
+      },
+      "low_beam": {
+        "name": "Ближнє світло"
+      },
+      "high_beam": {
+        "name": "Дальнє світло"
+      },
+      "hazard_lights": {
+        "name": "Аварійна сигналізація"
+      },
+      "park_comfort": {
+        "name": "Режим відпочинку"
+      },
+      "gps_spoofed": {
+        "name": "Підміна GPS"
+      }
+    },
+    "button": {
+      "rapid_warm": {
+        "name": "Швидке прогрівання"
+      },
+      "rapid_cool": {
+        "name": "Швидке охолодження"
+      },
+      "trunk_unlock": {
+        "name": "Відімкнути багажник"
+      },
+      "flash_lights": {
+        "name": "Блимнути фарами"
+      },
+      "flash_lights_horn": {
+        "name": "Фари та клаксон"
+      },
+      "refresh": {
+        "name": "Оновити"
       }
     },
     "select": {
-      "seat_level": {
+      "seat_heat_driver": {
+        "name": "Підігрів сидіння водія",
+        "state": {
+          "off": "Вимкнено",
+          "low": "Слабкий",
+          "medium": "Середній",
+          "high": "Сильний"
+        }
+      },
+      "seat_heat_passenger": {
+        "name": "Підігрів сидіння пасажира",
+        "state": {
+          "off": "Вимкнено",
+          "low": "Слабкий",
+          "medium": "Середній",
+          "high": "Сильний"
+        }
+      },
+      "seat_heat_rear_left": {
+        "name": "Підігрів заднього лівого сидіння",
+        "state": {
+          "off": "Вимкнено",
+          "low": "Слабкий",
+          "medium": "Середній",
+          "high": "Сильний"
+        }
+      },
+      "seat_heat_rear_right": {
+        "name": "Підігрів заднього правого сидіння",
+        "state": {
+          "off": "Вимкнено",
+          "low": "Слабкий",
+          "medium": "Середній",
+          "high": "Сильний"
+        }
+      },
+      "seat_vent_driver": {
+        "name": "Вентиляція сидіння водія",
+        "state": {
+          "off": "Вимкнено",
+          "low": "Слабкий",
+          "medium": "Середній",
+          "high": "Сильний"
+        }
+      },
+      "seat_vent_passenger": {
+        "name": "Вентиляція сидіння пасажира",
+        "state": {
+          "off": "Вимкнено",
+          "low": "Слабкий",
+          "medium": "Середній",
+          "high": "Сильний"
+        }
+      },
+      "seat_vent_rear_left": {
+        "name": "Вентиляція заднього лівого сидіння",
+        "state": {
+          "off": "Вимкнено",
+          "low": "Слабкий",
+          "medium": "Середній",
+          "high": "Сильний"
+        }
+      },
+      "seat_vent_rear_right": {
+        "name": "Вентиляція заднього правого сидіння",
         "state": {
           "off": "Вимкнено",
           "low": "Слабкий",
@@ -55,10 +266,129 @@
         }
       },
       "windows": {
+        "name": "Вікна",
         "state": {
           "closed": "Закрито",
           "vent": "Провітрювання",
           "open": "Відкрито"
+        }
+      }
+    },
+    "climate": {
+      "climate": {
+        "name": "Клімат"
+      }
+    },
+    "device_tracker": {
+      "location": {
+        "name": "Місцезнаходження"
+      }
+    },
+    "lock": {
+      "door_lock": {
+        "name": "Двері"
+      }
+    },
+    "number": {
+      "ac_target_temperature": {
+        "name": "Цільова температура клімату"
+      },
+      "ac_duration": {
+        "name": "Тривалість роботи клімату"
+      }
+    },
+    "switch": {
+      "sentry_mode": {
+        "name": "Режим вартового"
+      },
+      "air_conditioning": {
+        "name": "Кондиціонер"
+      },
+      "defrost": {
+        "name": "Обігрів скла"
+      },
+      "cabin_ventilation": {
+        "name": "Провітрювання салону"
+      },
+      "steering_wheel_heating": {
+        "name": "Підігрів керма"
+      }
+    }
+  },
+  "services": {
+    "get_monthly_statistics": {
+      "name": "Отримати місячну статистику",
+      "description": "Повертає статистику поїздок за місяць для одного авто Zeekr.",
+      "fields": {
+        "vin": {
+          "name": "VIN авто",
+          "description": "VIN авто."
+        },
+        "year_month": {
+          "name": "Місяць",
+          "description": "Місяць у форматі РРРР-ММ."
+        },
+        "account_id": {
+          "name": "ID акаунта",
+          "description": "ID акаунта Zeekr, якому належить статистика."
+        }
+      }
+    },
+    "get_app_messages": {
+      "name": "Отримати повідомлення застосунку",
+      "description": "Повертає повідомлення про оновлення застосунку для одного авто Zeekr.",
+      "fields": {
+        "vin": {
+          "name": "VIN авто",
+          "description": "VIN авто."
+        }
+      }
+    },
+    "remote_control": {
+      "name": "Дистанційна команда (розширено)",
+      "description": "Надсилає сиру дистанційну команду одному авто. Формат запиту підтверджено із застосунку; які serviceId приймає авто, залежить від покоління. Приклади: serviceId RSM (вартовий), ZAF (клімат: параметри AC/DF/SH.xx/RC/RW), RCC (провітрювання салону), RDU/RDL (відімкнути/замкнути двері, параметр target), RTU/RTL (багажник), RHL (фари та клаксон).",
+      "fields": {
+        "vin": {
+          "name": "VIN авто",
+          "description": "VIN авто."
+        },
+        "service_id": {
+          "name": "ID сервісу",
+          "description": "Дистанційний сервіс, напр. RSM, ZAF, RDU."
+        },
+        "command": {
+          "name": "Команда",
+          "description": "Команда сервісу, напр. start або stop."
+        },
+        "parameters": {
+          "name": "Параметри сервісу",
+          "description": "Список об'єктів {key, value}, що потрапляють у setting.serviceParameters."
+        },
+        "duration": {
+          "name": "Тривалість",
+          "description": "Необов'язковий час роботи, потрапляє в setting.operationScheduling.duration."
+        },
+        "wait_result": {
+          "name": "Чекати результату",
+          "description": "Чекати до 45 секунд, доки авто повідомить, чи виконало команду."
+        }
+      }
+    },
+    "api_get": {
+      "name": "API GET (дослідження)",
+      "description": "Лише для адміністратора. Надсилає підписаний GET-запит до шляху API авто Zeekr і повертає сиру відповідь. Для вивчення ендпоінтів читання; команд надсилати не може.",
+      "fields": {
+        "vin": {
+          "name": "VIN авто",
+          "description": "VIN авто."
+        },
+        "path": {
+          "name": "Шлях",
+          "description": "Шлях API, починається зі скісної риски."
+        },
+        "params": {
+          "name": "Параметри запиту",
+          "description": "Параметри рядка запиту як пари ключ/значення."
         }
       }
     }

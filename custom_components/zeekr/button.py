@@ -18,7 +18,7 @@ from .entity import ZeekrVehicleEntity
 class ZeekrRefreshButton(ZeekrVehicleEntity, ButtonEntity):
     """Request an immediate status refresh for the parent vehicle."""
 
-    _attr_name = "Refresh"
+    _attr_translation_key = "refresh"
 
     def __init__(self, coordinator: Any, vin: str) -> None:
         """Bind a stateless refresh button to one vehicle's status coordinator."""
@@ -41,7 +41,6 @@ class ZeekrCommandSpec:
     """A remote command exposed as a button, built from the extracted app model."""
 
     key: str
-    name: str
     # (setting) -> {service_id, command, parameters, duration}
     build: Callable[[Dict[str, Any]], Dict[str, Any]]
     experimental: bool = True
@@ -96,15 +95,13 @@ def _trunk_unlock(_setting: Dict[str, Any]) -> Dict[str, Any]:
 
 
 COMMAND_BUTTONS: List[ZeekrCommandSpec] = [
-    ZeekrCommandSpec("rapid_warm", "Rapid Warming", _rapid("RW"), False),
-    ZeekrCommandSpec("rapid_cool", "Rapid Cooling", _rapid("RC"), False),
-    ZeekrCommandSpec("trunk_unlock", "Unlock Trunk", _trunk_unlock, False),
+    ZeekrCommandSpec("rapid_warm", _rapid("RW"), False),
+    ZeekrCommandSpec("rapid_cool", _rapid("RC"), False),
+    ZeekrCommandSpec("trunk_unlock", _trunk_unlock, False),
     # Signal: built from the app's code, not yet verified on a car, so these are
     # disabled by default.
-    ZeekrCommandSpec("flash_lights", "Flash Lights", _horn_light("light-flash")),
-    ZeekrCommandSpec(
-        "flash_lights_horn", "Flash Lights & Horn", _horn_light("horn-light-flash")
-    ),
+    ZeekrCommandSpec("flash_lights", _horn_light("light-flash")),
+    ZeekrCommandSpec("flash_lights_horn", _horn_light("horn-light-flash")),
 ]
 
 # Buttons of earlier versions that were replaced or whose command was wrong;
@@ -132,7 +129,7 @@ class ZeekrCommandButton(ZeekrVehicleEntity, ButtonEntity):
         super().__init__(runtime.coordinator, vin)
         self._runtime = runtime
         self._spec = spec
-        self._attr_name = spec.name
+        self._attr_translation_key = spec.key
         self._attr_entity_registry_enabled_default = not spec.experimental
         self._attr_unique_id = f"{vin}_cmd_{spec.key}"
 

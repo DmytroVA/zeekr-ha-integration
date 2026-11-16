@@ -85,6 +85,11 @@ into *changing* (with change count and sample values), *constant* and
 `electric_park_brake_status` reports `engaged` / `released`. These are stable keys
 (use them in automations); the UI shows them translated.
 
+Entity names and service descriptions are translated into English, Ukrainian and
+Simplified Chinese and follow the Home Assistant language. Entity IDs are always
+built from the English name, so they are the same in every language; names you
+renamed yourself stay as you set them. Raw sensors keep their English field names.
+
 | Platform | Entities |
 |---|---|
 | `sensor` | 27 typed (battery, range, interior temp, tyre pressures/temps, odometer, distances/days to service, 12 V voltage, charge current/voltage, average consumption (the car resets it periodically, usually after charging), PM2.5, speed, time-to-full, trip meters, …; *exterior temperature* is disabled by default: the cloud leaves `exteriorTemp` empty), `last_cloud_update`, **+ ~169 raw diagnostic sensors (disabled by default) covering every remaining field in the app's status model** (BasicVo, ElectricVehicleStatusVo, ClimateStatusVo, DrivingSafetyStatusVo, AdditionalMaintenanceStatusVo, RunningStatusVo, PollutionStatusVo, DrivingBehaviourStatusVo, BigdataVehicleStatusVo, PositionVo, mainBatteryStatus). Nested/JSON fields (`storageBoxStatus`, `fragItems`, …) are shown as compact JSON. |

@@ -32,21 +32,232 @@
   },
   "entity": {
     "sensor": {
+      "distance_to_empty": {
+        "name": "续航里程"
+      },
+      "battery": {
+        "name": "电池电量"
+      },
+      "interior_temperature": {
+        "name": "车内温度"
+      },
+      "engine_status": {
+        "name": "动力状态"
+      },
+      "tire_pressure_front_left": {
+        "name": "左前胎压"
+      },
+      "tire_pressure_front_right": {
+        "name": "右前胎压"
+      },
+      "tire_pressure_rear_left": {
+        "name": "左后胎压"
+      },
+      "tire_pressure_rear_right": {
+        "name": "右后胎压"
+      },
+      "distance_to_service": {
+        "name": "距离保养里程"
+      },
+      "odometer": {
+        "name": "总里程"
+      },
+      "main_battery_voltage": {
+        "name": "12V 蓄电池电压"
+      },
+      "average_power_consumption": {
+        "name": "平均电耗"
+      },
       "central_locking_status": {
+        "name": "中控锁",
         "state": {
           "unlocked": "已解锁",
           "locked": "已上锁"
         }
       },
       "electric_park_brake_status": {
+        "name": "电子手刹",
         "state": {
           "released": "已释放",
           "engaged": "已启用"
         }
+      },
+      "exterior_temperature": {
+        "name": "车外温度"
+      },
+      "speed": {
+        "name": "车速"
+      },
+      "charge_current": {
+        "name": "充电电流"
+      },
+      "charge_voltage": {
+        "name": "充电电压"
+      },
+      "time_to_full_charge": {
+        "name": "充满剩余时间"
+      },
+      "tire_temp_front_left": {
+        "name": "左前胎温"
+      },
+      "tire_temp_front_right": {
+        "name": "右前胎温"
+      },
+      "tire_temp_rear_left": {
+        "name": "左后胎温"
+      },
+      "tire_temp_rear_right": {
+        "name": "右后胎温"
+      },
+      "trip_meter_1": {
+        "name": "小计里程 1"
+      },
+      "trip_meter_2": {
+        "name": "小计里程 2"
+      },
+      "days_to_service": {
+        "name": "距离保养天数"
+      },
+      "interior_pm25": {
+        "name": "车内 PM2.5"
+      },
+      "last_cloud_update": {
+        "name": "云端最后更新"
+      }
+    },
+    "binary_sensor": {
+      "charging": {
+        "name": "充电中"
+      },
+      "hv_battery_optimization": {
+        "name": "动力电池优化"
+      },
+      "plugged_in": {
+        "name": "充电枪已连接"
+      },
+      "door_front_left": {
+        "name": "左前门"
+      },
+      "door_front_right": {
+        "name": "右前门"
+      },
+      "door_rear_left": {
+        "name": "左后门"
+      },
+      "door_rear_right": {
+        "name": "右后门"
+      },
+      "trunk": {
+        "name": "后备箱"
+      },
+      "hood": {
+        "name": "前机舱盖"
+      },
+      "trunk_lock": {
+        "name": "后备箱锁"
+      },
+      "low_beam": {
+        "name": "近光灯"
+      },
+      "high_beam": {
+        "name": "远光灯"
+      },
+      "hazard_lights": {
+        "name": "双闪"
+      },
+      "park_comfort": {
+        "name": "驻车舒适模式"
+      },
+      "gps_spoofed": {
+        "name": "GPS 欺骗"
+      }
+    },
+    "button": {
+      "rapid_warm": {
+        "name": "极速升温"
+      },
+      "rapid_cool": {
+        "name": "极速降温"
+      },
+      "trunk_unlock": {
+        "name": "解锁后备箱"
+      },
+      "flash_lights": {
+        "name": "闪灯"
+      },
+      "flash_lights_horn": {
+        "name": "闪灯鸣笛"
+      },
+      "refresh": {
+        "name": "刷新"
       }
     },
     "select": {
-      "seat_level": {
+      "seat_heat_driver": {
+        "name": "主驾座椅加热",
+        "state": {
+          "off": "关闭",
+          "low": "低",
+          "medium": "中",
+          "high": "高"
+        }
+      },
+      "seat_heat_passenger": {
+        "name": "副驾座椅加热",
+        "state": {
+          "off": "关闭",
+          "low": "低",
+          "medium": "中",
+          "high": "高"
+        }
+      },
+      "seat_heat_rear_left": {
+        "name": "左后座椅加热",
+        "state": {
+          "off": "关闭",
+          "low": "低",
+          "medium": "中",
+          "high": "高"
+        }
+      },
+      "seat_heat_rear_right": {
+        "name": "右后座椅加热",
+        "state": {
+          "off": "关闭",
+          "low": "低",
+          "medium": "中",
+          "high": "高"
+        }
+      },
+      "seat_vent_driver": {
+        "name": "主驾座椅通风",
+        "state": {
+          "off": "关闭",
+          "low": "低",
+          "medium": "中",
+          "high": "高"
+        }
+      },
+      "seat_vent_passenger": {
+        "name": "副驾座椅通风",
+        "state": {
+          "off": "关闭",
+          "low": "低",
+          "medium": "中",
+          "high": "高"
+        }
+      },
+      "seat_vent_rear_left": {
+        "name": "左后座椅通风",
+        "state": {
+          "off": "关闭",
+          "low": "低",
+          "medium": "中",
+          "high": "高"
+        }
+      },
+      "seat_vent_rear_right": {
+        "name": "右后座椅通风",
         "state": {
           "off": "关闭",
           "low": "低",
@@ -55,10 +266,129 @@
         }
       },
       "windows": {
+        "name": "车窗",
         "state": {
           "closed": "关闭",
           "vent": "微开",
           "open": "全开"
+        }
+      }
+    },
+    "climate": {
+      "climate": {
+        "name": "空调"
+      }
+    },
+    "device_tracker": {
+      "location": {
+        "name": "位置"
+      }
+    },
+    "lock": {
+      "door_lock": {
+        "name": "车门"
+      }
+    },
+    "number": {
+      "ac_target_temperature": {
+        "name": "空调目标温度"
+      },
+      "ac_duration": {
+        "name": "空调运行时长"
+      }
+    },
+    "switch": {
+      "sentry_mode": {
+        "name": "哨兵模式"
+      },
+      "air_conditioning": {
+        "name": "空调"
+      },
+      "defrost": {
+        "name": "除霜"
+      },
+      "cabin_ventilation": {
+        "name": "座舱通风"
+      },
+      "steering_wheel_heating": {
+        "name": "方向盘加热"
+      }
+    }
+  },
+  "services": {
+    "get_monthly_statistics": {
+      "name": "获取月度统计",
+      "description": "返回一辆 Zeekr 车辆的月度行程统计。",
+      "fields": {
+        "vin": {
+          "name": "车辆 VIN",
+          "description": "车辆的 VIN。"
+        },
+        "year_month": {
+          "name": "月份",
+          "description": "格式为 YYYY-MM 的月份。"
+        },
+        "account_id": {
+          "name": "账号 ID",
+          "description": "统计所属的 Zeekr 账号 ID。"
+        }
+      }
+    },
+    "get_app_messages": {
+      "name": "获取应用消息",
+      "description": "返回一辆 Zeekr 车辆的应用升级消息。",
+      "fields": {
+        "vin": {
+          "name": "车辆 VIN",
+          "description": "车辆的 VIN。"
+        }
+      }
+    },
+    "remote_control": {
+      "name": "远程控制（高级）",
+      "description": "向一辆车发送原始远程控制指令。请求格式已从应用确认；车辆接受哪些 serviceId 因车型代际而异。示例：serviceId RSM（哨兵）、ZAF（空调：AC/DF/SH.xx/RC/RW 参数）、RCC（座舱通风）、RDU/RDL（车门解锁/上锁，target 参数）、RTU/RTL（后备箱）、RHL（闪灯鸣笛）。",
+      "fields": {
+        "vin": {
+          "name": "车辆 VIN",
+          "description": "车辆的 VIN。"
+        },
+        "service_id": {
+          "name": "服务 ID",
+          "description": "远程服务，例如 RSM、ZAF、RDU。"
+        },
+        "command": {
+          "name": "指令",
+          "description": "服务的指令，例如 start 或 stop。"
+        },
+        "parameters": {
+          "name": "服务参数",
+          "description": "放入 setting.serviceParameters 的 {key, value} 对象列表。"
+        },
+        "duration": {
+          "name": "时长",
+          "description": "可选运行时间，放入 setting.operationScheduling.duration。"
+        },
+        "wait_result": {
+          "name": "等待结果",
+          "description": "最多等待 45 秒，直到车辆报告是否已执行指令。"
+        }
+      }
+    },
+    "api_get": {
+      "name": "API GET（研究）",
+      "description": "仅限管理员。向 Zeekr 车辆 API 的某个路径发送签名 GET 请求并返回原始响应。用于探索读取接口；无法发送指令。",
+      "fields": {
+        "vin": {
+          "name": "车辆 VIN",
+          "description": "车辆的 VIN。"
+        },
+        "path": {
+          "name": "路径",
+          "description": "以斜杠开头的 API 路径。"
+        },
+        "params": {
+          "name": "查询参数",
+          "description": "以键/值对形式的查询字符串参数。"
         }
       }
     }

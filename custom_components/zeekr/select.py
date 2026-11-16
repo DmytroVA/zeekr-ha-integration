@@ -25,7 +25,6 @@ class ZeekrSeatSpec:
     """One seat comfort function: its command key and its status field."""
 
     key: str
-    name: str
     # ZAF parameter prefix, e.g. ``SH.11`` (heating, driver) / ``SV.19`` (vent, passenger).
     param: str
     path: str
@@ -33,14 +32,14 @@ class ZeekrSeatSpec:
 
 
 SEAT_SELECTS: List[ZeekrSeatSpec] = [
-    ZeekrSeatSpec("seat_heat_driver", "Seat Heating Driver", "SH.11", "v2.climateStatus.drvHeatLv", "mdi:car-seat-heater"),
-    ZeekrSeatSpec("seat_heat_passenger", "Seat Heating Passenger", "SH.19", "v2.climateStatus.passHeatLv", "mdi:car-seat-heater"),
-    ZeekrSeatSpec("seat_heat_rear_left", "Seat Heating Rear Left", "SH.21", "v2.climateStatus.rlHeatLv", "mdi:car-seat-heater"),
-    ZeekrSeatSpec("seat_heat_rear_right", "Seat Heating Rear Right", "SH.29", "v2.climateStatus.rrHeatLv", "mdi:car-seat-heater"),
-    ZeekrSeatSpec("seat_vent_driver", "Seat Ventilation Driver", "SV.11", "v2.climateStatus.drvVentDetail", "mdi:car-seat-cooler"),
-    ZeekrSeatSpec("seat_vent_passenger", "Seat Ventilation Passenger", "SV.19", "v2.climateStatus.passVentDetail", "mdi:car-seat-cooler"),
-    ZeekrSeatSpec("seat_vent_rear_left", "Seat Ventilation Rear Left", "SV.21", "v2.climateStatus.rlVentDetail", "mdi:car-seat-cooler"),
-    ZeekrSeatSpec("seat_vent_rear_right", "Seat Ventilation Rear Right", "SV.29", "v2.climateStatus.rrVentDetail", "mdi:car-seat-cooler"),
+    ZeekrSeatSpec("seat_heat_driver", "SH.11", "v2.climateStatus.drvHeatLv", "mdi:car-seat-heater"),
+    ZeekrSeatSpec("seat_heat_passenger", "SH.19", "v2.climateStatus.passHeatLv", "mdi:car-seat-heater"),
+    ZeekrSeatSpec("seat_heat_rear_left", "SH.21", "v2.climateStatus.rlHeatLv", "mdi:car-seat-heater"),
+    ZeekrSeatSpec("seat_heat_rear_right", "SH.29", "v2.climateStatus.rrHeatLv", "mdi:car-seat-heater"),
+    ZeekrSeatSpec("seat_vent_driver", "SV.11", "v2.climateStatus.drvVentDetail", "mdi:car-seat-cooler"),
+    ZeekrSeatSpec("seat_vent_passenger", "SV.19", "v2.climateStatus.passVentDetail", "mdi:car-seat-cooler"),
+    ZeekrSeatSpec("seat_vent_rear_left", "SV.21", "v2.climateStatus.rlVentDetail", "mdi:car-seat-cooler"),
+    ZeekrSeatSpec("seat_vent_rear_right", "SV.29", "v2.climateStatus.rrVentDetail", "mdi:car-seat-cooler"),
 ]
 
 
@@ -48,13 +47,12 @@ class ZeekrSeatSelect(ZeekrCommandEntity, SelectEntity):
     """Pick a seat heating/ventilation level: off, low, medium or high."""
 
     _attr_options = OPTIONS
-    _attr_translation_key = "seat_level"
 
     def __init__(self, runtime: ZeekrRuntimeData, vin: str, spec: ZeekrSeatSpec) -> None:
         """Bind one seat function of one vehicle."""
         super().__init__(runtime, vin)
         self._spec = spec
-        self._attr_name = spec.name
+        self._attr_translation_key = spec.key
         self._attr_icon = spec.icon
         self._attr_unique_id = f"{vin}_{spec.key}"
 
@@ -115,7 +113,6 @@ def window_state(positions: List[Optional[float]]) -> Optional[str]:
 class ZeekrWindowSelect(ZeekrCommandEntity, SelectEntity):
     """All windows at once: closed, vent gap (微开) or fully open (全开)."""
 
-    _attr_name = "Windows"
     _attr_icon = "mdi:car-door"
     # The car does not report the vent gap in its window positions (they stay 0),
     # so after a confirmed "vent" command that state is held until another

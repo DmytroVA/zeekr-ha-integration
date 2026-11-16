@@ -22,7 +22,7 @@ BINARY_SENSOR_FIELDS: List[Tuple[BinarySensorEntityDescription, str]] = [
     (
         BinarySensorEntityDescription(
             key="charging",
-            name="Charging",
+            translation_key="charging",
             device_class=BinarySensorDeviceClass.BATTERY_CHARGING,
         ),
         "additionalVehicleStatus.electricVehicleStatus.isCharging",
@@ -30,7 +30,7 @@ BINARY_SENSOR_FIELDS: List[Tuple[BinarySensorEntityDescription, str]] = [
     (
         BinarySensorEntityDescription(
             key="hv_battery_optimization",
-            name="HV Battery Optimization",
+            translation_key="hv_battery_optimization",
             device_class=BinarySensorDeviceClass.PROBLEM,
             entity_category=EntityCategory.DIAGNOSTIC,
         ),
@@ -39,7 +39,7 @@ BINARY_SENSOR_FIELDS: List[Tuple[BinarySensorEntityDescription, str]] = [
     (
         BinarySensorEntityDescription(
             key="plugged_in",
-            name="Plugged In",
+            translation_key="plugged_in",
             device_class=BinarySensorDeviceClass.PLUG,
         ),
         "additionalVehicleStatus.electricVehicleStatus.isPluggedIn",
@@ -47,7 +47,7 @@ BINARY_SENSOR_FIELDS: List[Tuple[BinarySensorEntityDescription, str]] = [
     (
         BinarySensorEntityDescription(
             key="door_front_left",
-            name="Door Front Left",
+            translation_key="door_front_left",
             device_class=BinarySensorDeviceClass.DOOR,
         ),
         "additionalVehicleStatus.drivingSafetyStatus.doorOpenStatusDriver",
@@ -55,7 +55,7 @@ BINARY_SENSOR_FIELDS: List[Tuple[BinarySensorEntityDescription, str]] = [
     (
         BinarySensorEntityDescription(
             key="door_front_right",
-            name="Door Front Right",
+            translation_key="door_front_right",
             device_class=BinarySensorDeviceClass.DOOR,
         ),
         "additionalVehicleStatus.drivingSafetyStatus.doorOpenStatusPassenger",
@@ -63,7 +63,7 @@ BINARY_SENSOR_FIELDS: List[Tuple[BinarySensorEntityDescription, str]] = [
     (
         BinarySensorEntityDescription(
             key="door_rear_left",
-            name="Door Rear Left",
+            translation_key="door_rear_left",
             device_class=BinarySensorDeviceClass.DOOR,
         ),
         "additionalVehicleStatus.drivingSafetyStatus.doorOpenStatusDriverRear",
@@ -71,7 +71,7 @@ BINARY_SENSOR_FIELDS: List[Tuple[BinarySensorEntityDescription, str]] = [
     (
         BinarySensorEntityDescription(
             key="door_rear_right",
-            name="Door Rear Right",
+            translation_key="door_rear_right",
             device_class=BinarySensorDeviceClass.DOOR,
         ),
         "additionalVehicleStatus.drivingSafetyStatus.doorOpenStatusPassengerRear",
@@ -79,7 +79,7 @@ BINARY_SENSOR_FIELDS: List[Tuple[BinarySensorEntityDescription, str]] = [
     (
         BinarySensorEntityDescription(
             key="trunk",
-            name="Trunk",
+            translation_key="trunk",
             device_class=BinarySensorDeviceClass.DOOR,
         ),
         "additionalVehicleStatus.drivingSafetyStatus.trunkOpenStatus",
@@ -87,7 +87,7 @@ BINARY_SENSOR_FIELDS: List[Tuple[BinarySensorEntityDescription, str]] = [
     (
         BinarySensorEntityDescription(
             key="hood",
-            name="Hood",
+            translation_key="hood",
             device_class=BinarySensorDeviceClass.DOOR,
         ),
         "additionalVehicleStatus.drivingSafetyStatus.engineHoodOpenStatus",
@@ -95,7 +95,7 @@ BINARY_SENSOR_FIELDS: List[Tuple[BinarySensorEntityDescription, str]] = [
     (
         BinarySensorEntityDescription(
             key="trunk_lock",
-            name="Trunk Lock",
+            translation_key="trunk_lock",
             device_class=BinarySensorDeviceClass.LOCK,
         ),
         "additionalVehicleStatus.drivingSafetyStatus.trunkLockStatus",
@@ -103,27 +103,27 @@ BINARY_SENSOR_FIELDS: List[Tuple[BinarySensorEntityDescription, str]] = [
     # ---- Fields only the v2.0 status document carries ----
     (
         BinarySensorEntityDescription(
-            key="low_beam", name="Low Beam", device_class=BinarySensorDeviceClass.LIGHT
+            key="low_beam", translation_key="low_beam", device_class=BinarySensorDeviceClass.LIGHT
         ),
         "additionalVehicleStatus.runningStatus.loBeam",
     ),
     (
         BinarySensorEntityDescription(
-            key="high_beam", name="High Beam", device_class=BinarySensorDeviceClass.LIGHT
+            key="high_beam", translation_key="high_beam", device_class=BinarySensorDeviceClass.LIGHT
         ),
         "additionalVehicleStatus.runningStatus.hiBeam",
     ),
     (
         BinarySensorEntityDescription(
             key="hazard_lights",
-            name="Hazard Lights",
+            translation_key="hazard_lights",
             device_class=BinarySensorDeviceClass.LIGHT,
         ),
         "additionalVehicleStatus.runningStatus.hwl",
     ),
     (
         BinarySensorEntityDescription(
-            key="park_comfort", name="Park Comfort Mode", icon="mdi:sofa"
+            key="park_comfort", translation_key="park_comfort", icon="mdi:sofa"
         ),
         "basicVehicleStatus.parkComfortState",
     ),
@@ -174,7 +174,7 @@ class ZeekrGpsSpoofSensor(ZeekrVehicleEntity, BinarySensorEntity):
     """
 
     _attr_device_class = BinarySensorDeviceClass.PROBLEM
-    _attr_name = "GPS Spoofed"
+    _attr_translation_key = "gps_spoofed"
 
     def __init__(self, coordinator: Any, vin: str) -> None:
         """Bind the GPS-trust problem sensor to one vehicle."""

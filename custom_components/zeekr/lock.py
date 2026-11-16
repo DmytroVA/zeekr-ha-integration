@@ -17,7 +17,7 @@ _LOCK_PATH = "additionalVehicleStatus.drivingSafetyStatus.centralLockingStatus"
 class ZeekrDoorLock(ZeekrCommandEntity, LockEntity):
     """Lock or unlock all doors (the app's ``RDL`` / ``RDU`` with ``door=all``)."""
 
-    _attr_name = "Doors"
+    _attr_translation_key = "door_lock"
 
     def __init__(self, runtime: ZeekrRuntimeData, vin: str) -> None:
         """Bind the central lock to one vehicle."""

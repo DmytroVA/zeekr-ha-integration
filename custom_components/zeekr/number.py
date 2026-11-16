@@ -61,7 +61,7 @@ class _ZeekrClimateNumber(ZeekrVehicleEntity, RestoreNumber, NumberEntity):
 class ZeekrAcTemperatureNumber(_ZeekrClimateNumber):
     """Target cabin temperature used by the experimental AC start command."""
 
-    _attr_name = "AC Target Temperature"
+    _attr_translation_key = "ac_target_temperature"
     _attr_native_unit_of_measurement = UnitOfTemperature.CELSIUS
     _attr_native_min_value = MIN_AC_TEMP
     _attr_native_max_value = MAX_AC_TEMP
@@ -78,7 +78,7 @@ class ZeekrAcTemperatureNumber(_ZeekrClimateNumber):
 class ZeekrAcDurationNumber(_ZeekrClimateNumber):
     """Run duration (minutes) used by the experimental AC/vent commands."""
 
-    _attr_name = "AC Duration"
+    _attr_translation_key = "ac_duration"
     _attr_native_unit_of_measurement = UnitOfTime.MINUTES
     # The app offers run times in 5-minute steps.
     _attr_native_min_value = 5

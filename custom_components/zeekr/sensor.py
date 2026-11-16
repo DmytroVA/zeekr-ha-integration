@@ -65,7 +65,7 @@ SENSOR_FIELDS: List[ZeekrSensorSpec] = [
     ZeekrSensorSpec(
         SensorEntityDescription(
             key="distance_to_empty",
-            name="Distance to Empty",
+            translation_key="distance_to_empty",
             native_unit_of_measurement=UnitOfLength.KILOMETERS,
             device_class=SensorDeviceClass.DISTANCE,
             state_class=SensorStateClass.MEASUREMENT,
@@ -75,7 +75,7 @@ SENSOR_FIELDS: List[ZeekrSensorSpec] = [
     ZeekrSensorSpec(
         SensorEntityDescription(
             key="battery",
-            name="Battery",
+            translation_key="battery",
             native_unit_of_measurement=PERCENTAGE,
             device_class=SensorDeviceClass.BATTERY,
             state_class=SensorStateClass.MEASUREMENT,
@@ -85,7 +85,7 @@ SENSOR_FIELDS: List[ZeekrSensorSpec] = [
     ZeekrSensorSpec(
         SensorEntityDescription(
             key="interior_temperature",
-            name="Interior Temperature",
+            translation_key="interior_temperature",
             native_unit_of_measurement=UnitOfTemperature.CELSIUS,
             device_class=SensorDeviceClass.TEMPERATURE,
             state_class=SensorStateClass.MEASUREMENT,
@@ -93,7 +93,7 @@ SENSOR_FIELDS: List[ZeekrSensorSpec] = [
         "additionalVehicleStatus.climateStatus.interiorTemp",
     ),
     ZeekrSensorSpec(
-        SensorEntityDescription(key="engine_status", name="Engine Status"),
+        SensorEntityDescription(key="engine_status", translation_key="engine_status"),
         "basicVehicleStatus.engineStatus",
         numeric=False,
         prefer_v2=False,
@@ -101,7 +101,7 @@ SENSOR_FIELDS: List[ZeekrSensorSpec] = [
     ZeekrSensorSpec(
         SensorEntityDescription(
             key="tire_pressure_front_left",
-            name="Tire Pressure Front Left",
+            translation_key="tire_pressure_front_left",
             device_class=SensorDeviceClass.PRESSURE,
             state_class=SensorStateClass.MEASUREMENT,
             suggested_display_precision=0,
@@ -112,7 +112,7 @@ SENSOR_FIELDS: List[ZeekrSensorSpec] = [
     ZeekrSensorSpec(
         SensorEntityDescription(
             key="tire_pressure_front_right",
-            name="Tire Pressure Front Right",
+            translation_key="tire_pressure_front_right",
             device_class=SensorDeviceClass.PRESSURE,
             state_class=SensorStateClass.MEASUREMENT,
             suggested_display_precision=0,
@@ -123,7 +123,7 @@ SENSOR_FIELDS: List[ZeekrSensorSpec] = [
     ZeekrSensorSpec(
         SensorEntityDescription(
             key="tire_pressure_rear_left",
-            name="Tire Pressure Rear Left",
+            translation_key="tire_pressure_rear_left",
             device_class=SensorDeviceClass.PRESSURE,
             state_class=SensorStateClass.MEASUREMENT,
             suggested_display_precision=0,
@@ -134,7 +134,7 @@ SENSOR_FIELDS: List[ZeekrSensorSpec] = [
     ZeekrSensorSpec(
         SensorEntityDescription(
             key="tire_pressure_rear_right",
-            name="Tire Pressure Rear Right",
+            translation_key="tire_pressure_rear_right",
             device_class=SensorDeviceClass.PRESSURE,
             state_class=SensorStateClass.MEASUREMENT,
             suggested_display_precision=0,
@@ -145,7 +145,7 @@ SENSOR_FIELDS: List[ZeekrSensorSpec] = [
     ZeekrSensorSpec(
         SensorEntityDescription(
             key="distance_to_service",
-            name="Distance to Service",
+            translation_key="distance_to_service",
             native_unit_of_measurement=UnitOfLength.KILOMETERS,
             device_class=SensorDeviceClass.DISTANCE,
             state_class=SensorStateClass.MEASUREMENT,
@@ -155,7 +155,7 @@ SENSOR_FIELDS: List[ZeekrSensorSpec] = [
     ZeekrSensorSpec(
         SensorEntityDescription(
             key="odometer",
-            name="Odometer",
+            translation_key="odometer",
             native_unit_of_measurement=UnitOfLength.KILOMETERS,
             device_class=SensorDeviceClass.DISTANCE,
             state_class=SensorStateClass.TOTAL_INCREASING,
@@ -165,7 +165,7 @@ SENSOR_FIELDS: List[ZeekrSensorSpec] = [
     ZeekrSensorSpec(
         SensorEntityDescription(
             key="main_battery_voltage",
-            name="Main Battery Voltage",
+            translation_key="main_battery_voltage",
             native_unit_of_measurement=UnitOfElectricPotential.VOLT,
             device_class=SensorDeviceClass.VOLTAGE,
             state_class=SensorStateClass.MEASUREMENT,
@@ -175,7 +175,7 @@ SENSOR_FIELDS: List[ZeekrSensorSpec] = [
     ZeekrSensorSpec(
         SensorEntityDescription(
             key="average_power_consumption",
-            name="Average Power Consumption",
+            translation_key="average_power_consumption",
             native_unit_of_measurement="kWh/100 km",
             state_class=SensorStateClass.MEASUREMENT,
         ),
@@ -184,7 +184,6 @@ SENSOR_FIELDS: List[ZeekrSensorSpec] = [
     ZeekrSensorSpec(
         SensorEntityDescription(
             key="central_locking_status",
-            name="Central Locking Status",
             translation_key="central_locking_status",
             device_class=SensorDeviceClass.ENUM,
             options=["unlocked", "locked"],
@@ -196,7 +195,6 @@ SENSOR_FIELDS: List[ZeekrSensorSpec] = [
     ZeekrSensorSpec(
         SensorEntityDescription(
             key="electric_park_brake_status",
-            name="Electric Park Brake Status",
             translation_key="electric_park_brake_status",
             device_class=SensorDeviceClass.ENUM,
             options=["released", "engaged"],
@@ -209,7 +207,7 @@ SENSOR_FIELDS: List[ZeekrSensorSpec] = [
     ZeekrSensorSpec(
         SensorEntityDescription(
             key="exterior_temperature",
-            name="Exterior Temperature",
+            translation_key="exterior_temperature",
             native_unit_of_measurement=UnitOfTemperature.CELSIUS,
             device_class=SensorDeviceClass.TEMPERATURE,
             state_class=SensorStateClass.MEASUREMENT,
@@ -221,7 +219,7 @@ SENSOR_FIELDS: List[ZeekrSensorSpec] = [
     ZeekrSensorSpec(
         SensorEntityDescription(
             key="speed",
-            name="Speed",
+            translation_key="speed",
             native_unit_of_measurement=UnitOfSpeed.KILOMETERS_PER_HOUR,
             device_class=SensorDeviceClass.SPEED,
             state_class=SensorStateClass.MEASUREMENT,
@@ -231,7 +229,7 @@ SENSOR_FIELDS: List[ZeekrSensorSpec] = [
     ZeekrSensorSpec(
         SensorEntityDescription(
             key="charge_current",
-            name="Charge Current",
+            translation_key="charge_current",
             native_unit_of_measurement=UnitOfElectricCurrent.AMPERE,
             device_class=SensorDeviceClass.CURRENT,
             state_class=SensorStateClass.MEASUREMENT,
@@ -242,7 +240,7 @@ SENSOR_FIELDS: List[ZeekrSensorSpec] = [
     ZeekrSensorSpec(
         SensorEntityDescription(
             key="charge_voltage",
-            name="Charge Voltage",
+            translation_key="charge_voltage",
             native_unit_of_measurement=UnitOfElectricPotential.VOLT,
             device_class=SensorDeviceClass.VOLTAGE,
             state_class=SensorStateClass.MEASUREMENT,
@@ -253,7 +251,7 @@ SENSOR_FIELDS: List[ZeekrSensorSpec] = [
     ZeekrSensorSpec(
         SensorEntityDescription(
             key="time_to_full_charge",
-            name="Time to Full Charge",
+            translation_key="time_to_full_charge",
             native_unit_of_measurement=UnitOfTime.MINUTES,
             device_class=SensorDeviceClass.DURATION,
             entity_category=EntityCategory.DIAGNOSTIC,
@@ -264,7 +262,7 @@ SENSOR_FIELDS: List[ZeekrSensorSpec] = [
     ZeekrSensorSpec(
         SensorEntityDescription(
             key="tire_temp_front_left",
-            name="Tire Temperature Front Left",
+            translation_key="tire_temp_front_left",
             native_unit_of_measurement=UnitOfTemperature.CELSIUS,
             device_class=SensorDeviceClass.TEMPERATURE,
             state_class=SensorStateClass.MEASUREMENT,
@@ -275,7 +273,7 @@ SENSOR_FIELDS: List[ZeekrSensorSpec] = [
     ZeekrSensorSpec(
         SensorEntityDescription(
             key="tire_temp_front_right",
-            name="Tire Temperature Front Right",
+            translation_key="tire_temp_front_right",
             native_unit_of_measurement=UnitOfTemperature.CELSIUS,
             device_class=SensorDeviceClass.TEMPERATURE,
             state_class=SensorStateClass.MEASUREMENT,
@@ -286,7 +284,7 @@ SENSOR_FIELDS: List[ZeekrSensorSpec] = [
     ZeekrSensorSpec(
         SensorEntityDescription(
             key="tire_temp_rear_left",
-            name="Tire Temperature Rear Left",
+            translation_key="tire_temp_rear_left",
             native_unit_of_measurement=UnitOfTemperature.CELSIUS,
             device_class=SensorDeviceClass.TEMPERATURE,
             state_class=SensorStateClass.MEASUREMENT,
@@ -297,7 +295,7 @@ SENSOR_FIELDS: List[ZeekrSensorSpec] = [
     ZeekrSensorSpec(
         SensorEntityDescription(
             key="tire_temp_rear_right",
-            name="Tire Temperature Rear Right",
+            translation_key="tire_temp_rear_right",
             native_unit_of_measurement=UnitOfTemperature.CELSIUS,
             device_class=SensorDeviceClass.TEMPERATURE,
             state_class=SensorStateClass.MEASUREMENT,
@@ -308,7 +306,7 @@ SENSOR_FIELDS: List[ZeekrSensorSpec] = [
     ZeekrSensorSpec(
         SensorEntityDescription(
             key="trip_meter_1",
-            name="Trip Meter 1",
+            translation_key="trip_meter_1",
             native_unit_of_measurement=UnitOfLength.KILOMETERS,
             device_class=SensorDeviceClass.DISTANCE,
             entity_category=EntityCategory.DIAGNOSTIC,
@@ -318,7 +316,7 @@ SENSOR_FIELDS: List[ZeekrSensorSpec] = [
     ZeekrSensorSpec(
         SensorEntityDescription(
             key="trip_meter_2",
-            name="Trip Meter 2",
+            translation_key="trip_meter_2",
             native_unit_of_measurement=UnitOfLength.KILOMETERS,
             device_class=SensorDeviceClass.DISTANCE,
             entity_category=EntityCategory.DIAGNOSTIC,
@@ -328,7 +326,7 @@ SENSOR_FIELDS: List[ZeekrSensorSpec] = [
     ZeekrSensorSpec(
         SensorEntityDescription(
             key="days_to_service",
-            name="Days to Service",
+            translation_key="days_to_service",
             native_unit_of_measurement=UnitOfTime.DAYS,
             device_class=SensorDeviceClass.DURATION,
             entity_category=EntityCategory.DIAGNOSTIC,
@@ -338,7 +336,7 @@ SENSOR_FIELDS: List[ZeekrSensorSpec] = [
     ZeekrSensorSpec(
         SensorEntityDescription(
             key="interior_pm25",
-            name="Interior PM2.5",
+            translation_key="interior_pm25",
             device_class=SensorDeviceClass.PM25,
             native_unit_of_measurement="µg/m³",
             state_class=SensorStateClass.MEASUREMENT,
@@ -397,7 +395,7 @@ class ZeekrLastUpdateSensor(ZeekrVehicleEntity, SensorEntity):
     """
 
     _attr_device_class = SensorDeviceClass.TIMESTAMP
-    _attr_name = "Last Cloud Update"
+    _attr_translation_key = "last_cloud_update"
 
     def __init__(self, coordinator: Any, vin: str) -> None:
         """Bind the last-upload timestamp sensor to one vehicle."""

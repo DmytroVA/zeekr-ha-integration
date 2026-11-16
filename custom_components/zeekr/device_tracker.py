@@ -24,7 +24,7 @@ class ZeekrTracker(ZeekrVehicleEntity, TrackerEntity, RestoreEntity):
     """
 
     _attr_source_type = SourceType.GPS
-    _attr_name = "Location"
+    _attr_translation_key = "location"
     _attr_location_accuracy = 10
 
     def __init__(self, coordinator: Any, vin: str) -> None:

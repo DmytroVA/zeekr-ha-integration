@@ -32,21 +32,232 @@
   },
   "entity": {
     "sensor": {
+      "distance_to_empty": {
+        "name": "Distance to Empty"
+      },
+      "battery": {
+        "name": "Battery"
+      },
+      "interior_temperature": {
+        "name": "Interior Temperature"
+      },
+      "engine_status": {
+        "name": "Engine Status"
+      },
+      "tire_pressure_front_left": {
+        "name": "Tire Pressure Front Left"
+      },
+      "tire_pressure_front_right": {
+        "name": "Tire Pressure Front Right"
+      },
+      "tire_pressure_rear_left": {
+        "name": "Tire Pressure Rear Left"
+      },
+      "tire_pressure_rear_right": {
+        "name": "Tire Pressure Rear Right"
+      },
+      "distance_to_service": {
+        "name": "Distance to Service"
+      },
+      "odometer": {
+        "name": "Odometer"
+      },
+      "main_battery_voltage": {
+        "name": "Main Battery Voltage"
+      },
+      "average_power_consumption": {
+        "name": "Average Power Consumption"
+      },
       "central_locking_status": {
+        "name": "Central Locking Status",
         "state": {
           "unlocked": "Unlocked",
           "locked": "Locked"
         }
       },
       "electric_park_brake_status": {
+        "name": "Electric Park Brake Status",
         "state": {
           "released": "Released",
           "engaged": "Engaged"
         }
+      },
+      "exterior_temperature": {
+        "name": "Exterior Temperature"
+      },
+      "speed": {
+        "name": "Speed"
+      },
+      "charge_current": {
+        "name": "Charge Current"
+      },
+      "charge_voltage": {
+        "name": "Charge Voltage"
+      },
+      "time_to_full_charge": {
+        "name": "Time to Full Charge"
+      },
+      "tire_temp_front_left": {
+        "name": "Tire Temperature Front Left"
+      },
+      "tire_temp_front_right": {
+        "name": "Tire Temperature Front Right"
+      },
+      "tire_temp_rear_left": {
+        "name": "Tire Temperature Rear Left"
+      },
+      "tire_temp_rear_right": {
+        "name": "Tire Temperature Rear Right"
+      },
+      "trip_meter_1": {
+        "name": "Trip Meter 1"
+      },
+      "trip_meter_2": {
+        "name": "Trip Meter 2"
+      },
+      "days_to_service": {
+        "name": "Days to Service"
+      },
+      "interior_pm25": {
+        "name": "Interior PM2.5"
+      },
+      "last_cloud_update": {
+        "name": "Last Cloud Update"
+      }
+    },
+    "binary_sensor": {
+      "charging": {
+        "name": "Charging"
+      },
+      "hv_battery_optimization": {
+        "name": "HV Battery Optimization"
+      },
+      "plugged_in": {
+        "name": "Plugged In"
+      },
+      "door_front_left": {
+        "name": "Door Front Left"
+      },
+      "door_front_right": {
+        "name": "Door Front Right"
+      },
+      "door_rear_left": {
+        "name": "Door Rear Left"
+      },
+      "door_rear_right": {
+        "name": "Door Rear Right"
+      },
+      "trunk": {
+        "name": "Trunk"
+      },
+      "hood": {
+        "name": "Hood"
+      },
+      "trunk_lock": {
+        "name": "Trunk Lock"
+      },
+      "low_beam": {
+        "name": "Low Beam"
+      },
+      "high_beam": {
+        "name": "High Beam"
+      },
+      "hazard_lights": {
+        "name": "Hazard Lights"
+      },
+      "park_comfort": {
+        "name": "Park Comfort Mode"
+      },
+      "gps_spoofed": {
+        "name": "GPS Spoofed"
+      }
+    },
+    "button": {
+      "rapid_warm": {
+        "name": "Rapid Warming"
+      },
+      "rapid_cool": {
+        "name": "Rapid Cooling"
+      },
+      "trunk_unlock": {
+        "name": "Unlock Trunk"
+      },
+      "flash_lights": {
+        "name": "Flash Lights"
+      },
+      "flash_lights_horn": {
+        "name": "Flash Lights & Horn"
+      },
+      "refresh": {
+        "name": "Refresh"
       }
     },
     "select": {
-      "seat_level": {
+      "seat_heat_driver": {
+        "name": "Seat Heating Driver",
+        "state": {
+          "off": "Off",
+          "low": "Low",
+          "medium": "Medium",
+          "high": "High"
+        }
+      },
+      "seat_heat_passenger": {
+        "name": "Seat Heating Passenger",
+        "state": {
+          "off": "Off",
+          "low": "Low",
+          "medium": "Medium",
+          "high": "High"
+        }
+      },
+      "seat_heat_rear_left": {
+        "name": "Seat Heating Rear Left",
+        "state": {
+          "off": "Off",
+          "low": "Low",
+          "medium": "Medium",
+          "high": "High"
+        }
+      },
+      "seat_heat_rear_right": {
+        "name": "Seat Heating Rear Right",
+        "state": {
+          "off": "Off",
+          "low": "Low",
+          "medium": "Medium",
+          "high": "High"
+        }
+      },
+      "seat_vent_driver": {
+        "name": "Seat Ventilation Driver",
+        "state": {
+          "off": "Off",
+          "low": "Low",
+          "medium": "Medium",
+          "high": "High"
+        }
+      },
+      "seat_vent_passenger": {
+        "name": "Seat Ventilation Passenger",
+        "state": {
+          "off": "Off",
+          "low": "Low",
+          "medium": "Medium",
+          "high": "High"
+        }
+      },
+      "seat_vent_rear_left": {
+        "name": "Seat Ventilation Rear Left",
+        "state": {
+          "off": "Off",
+          "low": "Low",
+          "medium": "Medium",
+          "high": "High"
+        }
+      },
+      "seat_vent_rear_right": {
+        "name": "Seat Ventilation Rear Right",
         "state": {
           "off": "Off",
           "low": "Low",
@@ -55,10 +266,129 @@
         }
       },
       "windows": {
+        "name": "Windows",
         "state": {
           "closed": "Closed",
           "vent": "Vent",
           "open": "Open"
+        }
+      }
+    },
+    "climate": {
+      "climate": {
+        "name": "Climate"
+      }
+    },
+    "device_tracker": {
+      "location": {
+        "name": "Location"
+      }
+    },
+    "lock": {
+      "door_lock": {
+        "name": "Doors"
+      }
+    },
+    "number": {
+      "ac_target_temperature": {
+        "name": "AC Target Temperature"
+      },
+      "ac_duration": {
+        "name": "AC Duration"
+      }
+    },
+    "switch": {
+      "sentry_mode": {
+        "name": "Sentry Mode"
+      },
+      "air_conditioning": {
+        "name": "Air Conditioning"
+      },
+      "defrost": {
+        "name": "Defrost"
+      },
+      "cabin_ventilation": {
+        "name": "Cabin Ventilation"
+      },
+      "steering_wheel_heating": {
+        "name": "Steering Wheel Heating"
+      }
+    }
+  },
+  "services": {
+    "get_monthly_statistics": {
+      "name": "Get monthly statistics",
+      "description": "Return the monthly journey statistics for one Zeekr vehicle.",
+      "fields": {
+        "vin": {
+          "name": "Vehicle VIN",
+          "description": "VIN of the vehicle."
+        },
+        "year_month": {
+          "name": "Month",
+          "description": "Month in YYYY-MM format."
+        },
+        "account_id": {
+          "name": "Account ID",
+          "description": "Zeekr account ID the statistics belong to."
+        }
+      }
+    },
+    "get_app_messages": {
+      "name": "Get app messages",
+      "description": "Return app upgrade messages for one Zeekr vehicle.",
+      "fields": {
+        "vin": {
+          "name": "Vehicle VIN",
+          "description": "VIN of the vehicle."
+        }
+      }
+    },
+    "remote_control": {
+      "name": "Remote control (advanced)",
+      "description": "Send a raw remote-control command to one vehicle. The envelope is confirmed from the app; serviceId acceptance varies per vehicle generation. Examples: serviceId RSM (sentry), ZAF (climate: AC/DF/SH.xx/RC/RW params), RCC (cabin ventilation), RDU/RDL (door unlock/lock, target param), RTU/RTL (trunk), RHL (flash & horn).",
+      "fields": {
+        "vin": {
+          "name": "Vehicle VIN",
+          "description": "VIN of the vehicle."
+        },
+        "service_id": {
+          "name": "Service ID",
+          "description": "Remote service, e.g. RSM, ZAF, RDU."
+        },
+        "command": {
+          "name": "Command",
+          "description": "Command of the service, e.g. start or stop."
+        },
+        "parameters": {
+          "name": "Service parameters",
+          "description": "List of {key, value} objects placed in setting.serviceParameters."
+        },
+        "duration": {
+          "name": "Duration",
+          "description": "Optional run time placed in setting.operationScheduling.duration."
+        },
+        "wait_result": {
+          "name": "Wait for result",
+          "description": "Wait up to 45 seconds for the car to report whether it executed the command."
+        }
+      }
+    },
+    "api_get": {
+      "name": "API GET (research)",
+      "description": "Administrator-only. Send a signed GET request to a path of the Zeekr vehicle API and return the raw answer. For exploring read endpoints; it cannot send commands.",
+      "fields": {
+        "vin": {
+          "name": "Vehicle VIN",
+          "description": "VIN of the vehicle."
+        },
+        "path": {
+          "name": "Path",
+          "description": "API path, starting with a slash."
+        },
+        "params": {
+          "name": "Query parameters",
+          "description": "Query string parameters as key/value pairs."
         }
       }
     }
